@@ -265,3 +265,26 @@ test('barajar: permutación, no muta y conserva el código de cada opción', () 
   assert.deepEqual(barajar([1, 2, 3, 4], secuencia()), barajar([1, 2, 3, 4], secuencia()));
   assert.deepEqual(barajar([1, 2, 3, 4], () => 0), [2, 3, 4, 1]);
 });
+
+test('Textos de la pantalla de alerta (7.7)', () => {
+  const a = TEXTOS.alerta;
+  assert.deepEqual(Object.keys(a).sort(), ['arquetipos', 'cuerpo', 'explicacion', 'pie', 'titulo']);
+  assert.equal(a.titulo, 'Tu marca todavía no ha elegido un carácter.');
+  assert.ok(a.cuerpo.includes('{a}') && a.cuerpo.includes('{b}') && a.cuerpo.includes('{c}'));
+  assert.equal(typeof a.explicacion, 'string');
+  assert.ok(a.explicacion.trim() !== '' && a.explicacion.length <= 300);
+  assert.doesNotMatch(a.explicacion, /[0-9%{}]/);
+  assert.deepEqual(Object.keys(a.arquetipos), [...ORDEN_CODIGOS]);
+  for (const c of CODIGOS) {
+    const texto = a.arquetipos[c];
+    const arq = ARQUETIPOS[c];
+    assert.ok(texto.trim() !== '' && texto.length <= 300, `${c}: longitud`);
+    assert.doesNotMatch(texto, /[0-9{}]/, `${c}: sin dígitos ni marcadores`);
+    assert.ok(texto.startsWith(arq.nombre), `${c}: empieza por el nombre`);
+    const deseo = arq.deseoCentral.charAt(0).toLocaleLowerCase('es') + arq.deseoCentral.slice(1);
+    assert.ok(texto.includes(deseo), `${c}: contiene el deseo central`);
+    for (const otro of CODIGOS) {
+      if (otro !== c) assert.ok(!texto.includes(ARQUETIPOS[otro].nombre), `${c}: nombra a ${otro}`);
+    }
+  }
+});

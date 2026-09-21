@@ -327,7 +327,26 @@ export const TEXTOS = {
   alerta: {
     titulo: 'Tu marca todavía no ha elegido un carácter.',
     cuerpo: 'Tus respuestas reparten la personalidad entre {a}, {b} y {c} casi por igual. Eso no es un fallo del test: significa que tu marca se comporta de formas distintas según el momento, y es justo lo que hace que a tus clientes les cueste reconocerte.',
-    pie: 'Es el punto de partida más habitual. Lo resolvemos en la sesión.'
+    pie: 'Es el punto de partida más habitual. Lo resolvemos en la sesión.',
+
+    // Sección 7.7. PROVISIONAL: pendiente de revisión de Elizabeth.
+    explicacion: 'No hay un resultado concluyente porque, en tus respuestas, ningún carácter se separa lo bastante de los demás. Si eligiéramos uno como el principal, estaríamos adivinando. Lo que sí podemos decirte es cuáles son los tres que más pesan, para que veas entre cuáles tienes que decidir.',
+
+    // Sección 7.7: un párrafo por arquetipo (Qué es de 7.6 + Deseo central de 3). PROVISIONAL.
+    arquetipos: {
+      IN: 'El Inocente cree que las cosas no tienen por qué ser complicadas: quita capas, jerga y letra pequeña hasta que el cliente entiende. Lo que quiere es sencillez y seguridad.',
+      SA: 'El Sabio no hace por ti: te ayuda a entender el porqué de cada decisión para que decidas con tu propio criterio. Lo que quiere es comprender la verdad.',
+      EX: 'El Explorador se mueve antes que los demás: prueba, descarta y comparte el camino mientras lo recorre. Lo que quiere es libertad para descubrir.',
+      HE: 'El Héroe cree que el esfuerzo bien dirigido da resultados, y lo organiza todo alrededor de conseguirlos: objetivos, medición, logro. Lo que quiere es demostrar valía con logros.',
+      RE: 'El Rebelde señala lo que no funciona, aunque incomode: existe contra una práctica del sector o una creencia que todos aceptan sin discutir. Lo que quiere es cambiar lo que no funciona.',
+      MA: 'El Mago cambia la situación de raíz, no la mejora un poco: trabaja sobre la forma en que el cliente ve su propio problema. Lo que quiere es transformar la realidad.',
+      HC: 'El Hombre común trata a todo el mundo de igual a igual, sin ponerse por encima ni hacer de gurú: el cliente se reconoce en él. Lo que quiere es pertenecer y conectar.',
+      AM: 'El Amante cuida cómo se siente el cliente en cada punto del recorrido, no solo el resultado final: el detalle, la estética y la experiencia. Lo que quiere es conexión e intimidad.',
+      BU: 'El Bufón quita hierro: usa el humor para que algo difícil se haga llevadero y para que la gente baje la guardia. Lo que quiere es disfrutar el momento.',
+      CU: 'El Cuidador pone por delante que el cliente esté bien atendido, y eso condiciona qué incluye el servicio, cómo responde y cuánto acompaña. Lo que quiere es proteger a los demás.',
+      CR: 'El Creador hace cosas que antes no existían y le importa que estén bien hechas: no entrega plantillas, cada trabajo es una pieza. Lo que quiere es crear algo duradero.',
+      GO: 'El Gobernante pone orden: tiene método y condiciones claras, y no las negocia. Lo que quiere es liderar y ordenar.'
+    }
   },
 
   // Sección 8, elemento 16

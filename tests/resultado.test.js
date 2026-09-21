@@ -7,11 +7,13 @@ import {
   notaCategoria,
   esCategoriaSaturada,
   componerResultado,
-  ORDEN_SECCIONES
+  parrafosAlerta,
+  ORDEN_SECCIONES,
+  ORDEN_SECCIONES_ALERTA
 } from '../src/js/resultado.js';
 import { calcular } from '../src/js/puntuacion.js';
 import { ARQUETIPOS, ORDEN_CODIGOS, TEXTOS, TENSIONES } from '../src/data/arquetipos.js';
-import { alObjetivo } from './fixtures.js';
+import { alObjetivo, respuestasAlerta, alertaPorEstabilidad } from './fixtures.js';
 
 const CODIGOS = [...ORDEN_CODIGOS];
 const sinCondiciones = {
@@ -22,12 +24,6 @@ const sinCondiciones = {
   arquetipo_categoria: 'SA'
 };
 const minuscula = (t) => t.charAt(0).toLocaleLowerCase('es') + t.slice(1);
-
-// Fixture de alerta: cuadrante claro, comportamiento plano.
-const respuestasAlerta = {
-  P4: 'MAESTRIA', P5: 'MAESTRIA', P6: 'MAESTRIA', P7: 'MAESTRIA',
-  P23: 'GO', P24: 'CU', P25: 'SA'
-};
 
 test('Frase combinada: 132 combinaciones', () => {
   let n = 0;
@@ -153,12 +149,13 @@ test('Aviso del Héroe: solo si HE es dominante', () => {
   assert.equal(componerResultado(c, sinCondiciones).aviso, null);
 });
 
-test('Alerta: solo mensaje, desglose y cierre', () => {
+test('Alerta: mensaje, explicación, párrafos, desglose y cierre', () => {
   const c = calcular(respuestasAlerta);
   assert.equal(c.alerta, true);
   for (const modo of ['marca', 'fundador']) {
     const r = componerResultado(c, { ...sinCondiciones, modo });
-    assert.deepEqual(Object.keys(r).sort(), ['alerta', 'cierre', 'desglose', 'mensaje']);
+    assert.deepEqual(Object.keys(r).sort(), ['alerta', 'arquetipos', 'cierre', 'desglose', 'explicacion', 'mensaje']);
+    for (const clave of ['frase', 'puede', 'noDebe', 'notaFundador', 'notaCategoria', 'descarga']) assert.ok(!(clave in r), clave);
     assert.equal(r.alerta, true);
     assert.ok(r.mensaje.cuerpo.includes('El Cuidador, El Gobernante y El Sabio'));
     assert.doesNotMatch(r.mensaje.cuerpo, /[{}]/);
@@ -204,4 +201,61 @@ test('El resultado no incluye las respuestas abiertas', () => {
   const abiertas = { ...alObjetivo, P36: 'ZZZ-secreto-36', P42: 'ZZZ-secreto-42' };
   const r = componerResultado(calcular(abiertas), sinCondiciones);
   assert.ok(!JSON.stringify(r).includes('ZZZ-secreto'));
+});
+
+test('Alerta: la explicación es la misma en modo marca y fundador', () => {
+  const c = calcular(respuestasAlerta);
+  for (const modo of ['marca', 'fundador']) {
+    assert.equal(componerResultado(c, { ...sinCondiciones, modo }).explicacion, TEXTOS.alerta.explicacion);
+  }
+});
+
+test('Alerta: un párrafo por arquetipo, en el orden del mensaje y del desglose', () => {
+  const r = componerResultado(calcular(respuestasAlerta), sinCondiciones);
+  assert.equal(r.arquetipos.length, 3);
+  assert.deepEqual(r.arquetipos.map((a) => a.codigo), ['CU', 'GO', 'SA']);
+  assert.deepEqual(r.arquetipos.map((a) => a.codigo), r.desglose.map((d) => d.codigo));
+  assert.deepEqual(r.arquetipos.map((a) => a.nombre), ['El Cuidador', 'El Gobernante', 'El Sabio']);
+  for (const a of r.arquetipos) {
+    assert.deepEqual(Object.keys(a).sort(), ['codigo', 'nombre', 'texto']);
+    assert.equal(a.nombre, ARQUETIPOS[a.codigo].nombre);
+    assert.equal(a.texto, TEXTOS.alerta.arquetipos[a.codigo]);
+  }
+});
+
+test('Alerta: los tres párrafos siguen al discriminante, no al total', () => {
+  const c = calcular(alertaPorEstabilidad);
+  assert.equal(c.alerta, true);
+  for (const k of CODIGOS) assert.equal(c.discriminante[k], ['AM', 'IN', 'MA'].includes(k) ? 2 : 0, k);
+  assert.deepEqual(c.ranking.slice(0, 3), ['CR', 'CU', 'GO']);
+  const r = componerResultado(c, sinCondiciones);
+  assert.deepEqual(r.arquetipos.map((a) => a.codigo), ['AM', 'IN', 'MA']);
+  assert.deepEqual(r.desglose.map((d) => d.codigo), ['AM', 'IN', 'MA']);
+  assert.ok(r.mensaje.cuerpo.includes('El Amante, El Inocente y El Mago'));
+});
+
+test('ORDEN_SECCIONES_ALERTA (sección 8)', () => {
+  assert.deepEqual([...ORDEN_SECCIONES_ALERTA], ['mensaje', 'explicacion', 'arquetipos', 'desglose', 'descarga', 'cierre']);
+  const r = componerResultado(calcular(respuestasAlerta), sinCondiciones);
+  for (const id of ORDEN_SECCIONES_ALERTA.filter((x) => x !== 'descarga')) assert.ok(id in r, id);
+});
+
+test('parrafosAlerta', () => {
+  const p = parrafosAlerta(['CU', 'GO', 'SA']);
+  assert.deepEqual(p.map((x) => x.codigo), ['CU', 'GO', 'SA']);
+  assert.throws(() => parrafosAlerta(['ZZ']));
+  assert.deepEqual(parrafosAlerta([]), []);
+});
+
+test('La alerta no contamina el resultado normal', () => {
+  const r = componerResultado(calcular(alObjetivo), { ...sinCondiciones, arquetipo_categoria: 'SA' });
+  assert.equal(r.alerta, false);
+  for (const clave of ['explicacion', 'arquetipos', 'mensaje', 'desglose']) assert.ok(!(clave in r), clave);
+});
+
+test('calcular({}) compone la alerta sin error', () => {
+  const r = componerResultado(calcular({}), sinCondiciones);
+  assert.equal(r.alerta, true);
+  assert.deepEqual(r.arquetipos.map((a) => a.codigo), ['AM', 'BU', 'CR']);
+  assert.deepEqual(r.desglose.map((d) => d.discriminante), [0, 0, 0]);
 });

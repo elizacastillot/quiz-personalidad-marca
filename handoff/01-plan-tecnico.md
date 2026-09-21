@@ -1,33 +1,33 @@
 # Plan técnico: Cuestionario de Personalidad de Marca (Al Objetivo)
 
-Fuente de verdad: `docs/especificacion.md` (en adelante «la spec»). Las referencias «§» son secciones de la spec; «l.» son líneas de ese archivo, para localizar los textos que hay que copiar literalmente. También se usan las reglas de `CLAUDE.md` y las skills del proyecto (`motor-puntuacion`, `envio-resultados`, `marca-al-objetivo`) cuando aportan detalle que la spec no da; se indica cuándo. Las referencias «Dn» remiten a las decisiones tomadas de la sección 7, que son vinculantes.
+Fuente de verdad: `docs/especificacion.md` (en adelante «la spec»). Las referencias «§» son secciones de la spec; «l.» son líneas de ese archivo, para localizar los textos que hay que copiar literalmente. También se usan las reglas de `CLAUDE.md` y las skills del proyecto (`motor-puntuacion`, `envio-resultados`, `marca-al-objetivo`) cuando aportan detalle que la spec no da; se indica cuándo. Las referencias «Dn» remiten a las decisiones tomadas de la sección 7, que son vinculantes. Las referencias «Cn» remiten a las decisiones del Cambio 1 (sección 10), que sustituyen a las «Dn» que contradicen (en concreto D6).
 
 ## 1. Resumen
 
 - Se construye una web estática (HTML, CSS y JS puro con módulos ES, sin build) con el cuestionario de 43 preguntas, un motor de puntuación puro y testeado con `node --test`, la pantalla de resultado de 16 elementos (§8) y el envío de 23 columnas a Google Apps Script (§10).
-- Partida desde cero: `src/` y `tests/` solo contienen `.gitkeep`. Existen ya `package.json` (script `test`), `docs/apps-script.gs` (COLUMNAS = §10, no se modifica) y `.github/workflows/pages.yml` (fuera de este plan).
-- Las 12 dudas que había están resueltas (sección 7, D1 a D12) y el plan las recoge. No queda ninguna duda abierta. Lo que la spec no trae y se resuelve por decisión (textos de P35, identificadores de sector, textos de interfaz) se marca como provisional y se lista en `handoff/02-implementacion.md` para revisión.
+- Estado: la implementación descrita en las secciones 2 a 9 ya existe en `src/` y `tests/` (commit `6e33591`). Existen también `package.json` (script `test`), `docs/apps-script.gs` (COLUMNAS = §10, no se modifica) y `.github/workflows/pages.yml` (fuera de este plan). **Cambio 1 (sección 10):** la pantalla de alerta deja de ser solo «mensaje, desglose y cierre» y pasa a llevar, en este orden, mensaje, explicación corta, un párrafo por cada uno de los tres arquetipos nombrados, desglose, botón de descarga (`window.print()`) y cierre. El resto del plan no cambia.
+- Las 12 dudas que había están resueltas (sección 7, D1 a D12) y el plan las recoge. El Cambio 1 añade una única duda abierta, no bloqueante (sección 11). Lo que la spec no trae y se resuelve por decisión (textos de P35, identificadores de sector, textos de interfaz, textos nuevos de la alerta) se marca como provisional y se lista en `handoff/02-implementacion.md` para revisión.
 
 ## 2. Mapa de archivos
 
-14 archivos a crear. No se modifica ninguno de los existentes (los `.gitkeep` pueden quedarse).
+14 archivos del plan original (ya creados). El Cambio 1 modifica 6 de ellos y no crea ninguno (detalle en 10.4); la columna «Responsabilidad» ya recoge el estado tras el cambio. `tests/fixtures.js` existe (exporta `alObjetivo`) y no estaba en el plan original; el Cambio 1 le añade una fixture (10.4).
 
 | Archivo | Responsabilidad |
 |---|---|
-| `src/index.html` | Estructura mínima (`lang="es"`, viewport, contenedor `#app`, fuentes Kanit y Nunito Sans con `display=swap`) y una sola carga: `<script type="module" src="js/interfaz.js">`. |
-| `src/css/estilos.css` | Estilos mobile first (mínimo 360 px, áreas táctiles ≥ 44 px, foco visible). Paleta de interfaz solo `#FFFFFF #000000 #D8851F #3D391F #1A2B32` (skill `marca-al-objetivo`). Los colores de arquetipo no van aquí: se inyectan desde datos en el resultado. Incluye un bloque `@media print` para la descarga por impresión (D7). |
+| `src/index.html` | Estructura mínima (`lang="es"`, viewport, contenedor `#app`, fuentes Kanit y Nunito Sans con `display=swap`) y una sola carga: `<script type="module" src="js/interfaz.js">`. Sin cambios en el Cambio 1. |
+| `src/css/estilos.css` | Estilos mobile first (mínimo 360 px, áreas táctiles ≥ 44 px, foco visible). Paleta de interfaz solo `#FFFFFF #000000 #D8851F #3D391F #1A2B32` (skill `marca-al-objetivo`). Los colores de arquetipo no van aquí: se inyectan desde datos en el resultado. Incluye un bloque `@media print` para la descarga por impresión (D7), que sirve al resultado normal y, desde el Cambio 1, a la pantalla de alerta. |
 | `src/data/cuestionario.js` | Datos: bloques, 43 preguntas con enunciados por modo, opciones con código, tabla de escalas, lista de 21 sectores con su identificador (D10), 12 opciones de P35 (11 provisionales, D1), textos fijos del bloque 6. Sin lógica. |
-| `src/data/arquetipos.js` | Datos: `ARQUETIPOS` (12 fichas, §3 y §7.6), `MOTIVACIONES`, `TENSIONES` (§7.2) y `TEXTOS` (plantillas 7.1 a 7.5, alerta, cierre). Sin lógica. |
-| `src/js/puntuacion.js` | Motor puro (sin DOM, sin `localStorage`). Puntuaciones, ordenación, porcentajes, alerta, tensión. |
-| `src/js/resultado.js` | Funciones puras que componen el objeto de resultado (frase, tensión, contexto 7.3, notas 7.4 y 7.5, aviso del Héroe, paleta, orden §8, pantalla de alerta) a partir del cálculo y del contexto. |
+| `src/data/arquetipos.js` | Datos: `ARQUETIPOS` (12 fichas, §3 y §7.6), `MOTIVACIONES`, `TENSIONES` (§7.2) y `TEXTOS` (plantillas 7.1 a 7.5, alerta, cierre). La alerta incluye, desde el Cambio 1, `explicacion` y los 12 párrafos `arquetipos` (PROVISIONAL). Sin lógica. |
+| `src/js/puntuacion.js` | Motor puro (sin DOM, sin `localStorage`). Puntuaciones, ordenación, porcentajes, alerta, tensión. Sin cambios en el Cambio 1. |
+| `src/js/resultado.js` | Funciones puras que componen el objeto de resultado (frase, tensión, contexto 7.3, notas 7.4 y 7.5, aviso del Héroe, paleta, orden §8, pantalla de alerta con su orden propio) a partir del cálculo y del contexto. |
 | `src/js/utilidades.js` | `barajar(lista, aleatorio = Math.random)` (Fisher-Yates, devuelve copia) y `textoSiNo(bool)`. Puro. |
-| `src/js/interfaz.js` | Punto de entrada. Navegación por pantallas, validación de obligatorios (D11), render, barra de progreso, guardado y recuperación de progreso, disparo del cálculo y del envío, render del resultado o de la alerta, botón de impresión (D7). |
-| `src/js/envio.js` | `CLAVES_HOJA`, `construirCarga(...)` (pura) y `enviar(carga)` (fetch fire and forget). |
+| `src/js/interfaz.js` | Punto de entrada. Navegación por pantallas, validación de obligatorios (D11), render, barra de progreso, guardado y recuperación de progreso, disparo del cálculo y del envío, render del resultado o de la alerta, botón de impresión (D7) en ambas pantallas. |
+| `src/js/envio.js` | `CLAVES_HOJA`, `construirCarga(...)` (pura) y `enviar(carga)` (fetch fire and forget). Sin cambios en el Cambio 1 (C4). |
 | `src/js/config.js` | `export const URL_APPS_SCRIPT` con el valor de la sección 3.6. |
-| `tests/datos.test.js` | Integridad de los datos: 43 preguntas, tabla del bloque 3 (tres condiciones calculadas), cobertura por arquetipo en bloques 4, 5 y 6, colores, fichas, variantes de modo fundador, P35, identificadores de sector, `barajar`. |
-| `tests/puntuacion.test.js` | Pesos aislados por bloque, bloques 1 y 7 neutros, alerta, empates, divisiones por cero, caso «Al Objetivo». |
-| `tests/resultado.test.js` | Frase combinada (132 combinaciones), tensiones, contexto 7.3, notas 7.4 y 7.5, aviso del Héroe, `categoria_saturada`, orden §8, pantalla de alerta. |
-| `tests/envio.test.js` | Las 23 claves (contra `docs/apps-script.gs`), formatos de valores, cabecera `text/plain`, URL configurada, no romper si falla. |
+| `tests/datos.test.js` | Integridad de los datos: 43 preguntas, tabla del bloque 3 (tres condiciones calculadas), cobertura por arquetipo en bloques 4, 5 y 6, colores, fichas, variantes de modo fundador, P35, identificadores de sector, `barajar`, textos de la alerta (Cambio 1). |
+| `tests/puntuacion.test.js` | Pesos aislados por bloque, bloques 1 y 7 neutros, alerta, empates, divisiones por cero, caso «Al Objetivo». Sin cambios en el Cambio 1. |
+| `tests/resultado.test.js` | Frase combinada (132 combinaciones), tensiones, contexto 7.3, notas 7.4 y 7.5, aviso del Héroe, `categoria_saturada`, orden §8, pantalla de alerta (Cambio 1: explicación, párrafos, orden propio). |
+| `tests/envio.test.js` | Las 23 claves (contra `docs/apps-script.gs`), formatos de valores, cabecera `text/plain`, URL configurada, no romper si falla; con alerta la carga no cambia (Cambio 1). |
 
 `package.json` ya tiene `"type": "module"` y `"test": "node --test tests/"`: no tocar.
 
@@ -94,7 +94,7 @@ Otros tipos:
 - `resta` (P20 a P22): opciones con código de arquetipo; el peso −2 lo aplica el motor. Ej. P20: `{ texto: 'Sonar ingenua o naíf', codigo: 'IN' }` (l. 284–289).
 - `dos-opciones` (P23 a P28): 2 opciones con código de arquetipo (+2 al elegido). Ej. P23: `GO` «Protegerlo y mejorarlo desde dentro» / `RE` «Tirarlo y hacerlo distinto» (l. 307–309).
 - `escala` (P29 a P34): sin `opciones`; lleva `izquierda: { etiqueta, codigos: [..2] }` y `derecha: { etiqueta, codigos: [..2] }`. Ej. P29: `{ izquierda: { etiqueta: 'Cercano', codigos: ['HC','IN'] }, derecha: { etiqueta: 'Con autoridad', codigos: ['GO','SA'] } }` (l. 347). Las 6 filas están en l. 347–352. El bloque exporta además `ENCABEZADO_BLOQUE_6` (l. 339–341) y `NOTA_FUNDADOR_BLOQUE_6` («Si todavía no conoces bien tu sector, sitúate respecto a las marcas que consideras tu referencia», l. 343).
-- `lista-arquetipo` (P35, D1): 12 opciones, una por arquetipo, cada una con `id` (`P35a`…`P35l`), `texto` y `codigo`. La del Sabio es literal de la spec (l. 362): `{ id: 'P35b', texto: 'Explican mucho y se posicionan como los que más saben', codigo: 'SA' }`. Las otras 11 las redacta el implementador como borradores, con `provisional: true` en la opción y un comentario `// PROVISIONAL` en el código. Requisitos de los borradores: una línea, describen cómo se comporta la categoría (no cómo es la marca del usuario), sin nombrar al arquetipo, misma longitud aproximada y misma deseabilidad que la del Sabio (principio 2, §2), en el estilo de la de SA. Todos los borradores se listan en `handoff/02-implementacion.md`, con su código, para que Elizabeth los revise. Cuando se aprueben, se quita `provisional` y se actualiza la prueba 6.3.11.
+- `lista-arquetipo` (P35, D1): 12 opciones, una por arquetipo, cada una con `id` (`P35a`…`P35l`), `texto` y `codigo`. La del Sabio es literal de la spec (l. 362): `{ id: 'P35b', texto: 'Explican mucho y se posicionan como los que más saben', codigo: 'SA' }`. Las otras 11 las redacta el implementador como borradores, con `provisional: true` en la opción y un comentario `// PROVISIONAL` en el código. Requisitos de los borradores: una línea, describen cómo se comporta la categoría (no cómo es la marca del usuario), sin nombrar al arquetipo, misma longitud aproximada y misma deseabilidad que la del Sabio (principio 2, §2), en el estilo de la de SA. Todos los borradores se listan en `handoff/02-implementacion.md`, con su código, para que Elizabeth los revise. Cuando se aprueben, se quita `provisional` y se actualiza la prueba 6.3.12.
 - `abierta` (P36 a P43): solo enunciado. P39 lleva variante de fundador «…las personas con las que has trabajado» (l. 378); el resto `fundador: null`. Enunciados en l. 368–370 y 377–382. Son opcionales (D11).
 
 Variantes de modo fundador que existen en la spec (las demás son `fundador: null`):
@@ -156,7 +156,7 @@ Otros exports de `arquetipos.js`:
   - `contexto.encabezado`, y por condición `general` y `matices` (§7.3 l. 477–518): `clientes_vulnerables` (matices BU, RE, HE, MA, EX), `restriccion_normativa` (HE, MA, GO, RE, y AM y BU con el mismo texto), `consecuencias_graves` (IN, BU, EX, HC, CR); `contexto.variasCondiciones` (l. 524)
   - `notaFundador` (§7.4 l. 528)
   - `notaCategoria.coincideDominante` y `notaCategoria.distinta` (§7.5 l. 534 y 538). No hay texto para «coincide con el secundario» (D3): no se crea ninguna clave para ese caso.
-  - `alerta` (§6 l. 433–437): `titulo`, `cuerpo` con marcadores `{a}`, `{b}`, `{c}` y `pie`.
+  - `alerta` (§6 l. 433–437): `titulo`, `cuerpo` con marcadores `{a}`, `{b}`, `{c}` y `pie` (literales). **Cambio 1:** se añaden `explicacion` (una cadena) y `arquetipos` (objeto con los 12 códigos como claves y un párrafo por cada uno), ambos PROVISIONAL; texto exacto en 10.3 (§7.7 propuesto).
   - `cierre`: «Esto es el punto de partida. Lo afinamos juntas en la sesión.» (§8 l. 755)
   - `etiquetasResultado` de las secciones (Qué es, Para qué sirve, Aviso importante, Qué puede hacer tu marca, Qué no debe hacer nunca, Tu sombra, Tu voz, Paleta sugerida): están nombradas en §8 y §7.6; los rótulos visibles son los de la lista.
 - Los matices «Resto: sin matiz específico» no se almacenan: la ausencia de clave significa «solo el texto general».
@@ -188,7 +188,7 @@ Estado completo persistido (`localStorage`, clave `alobjetivo-quiz-progreso`, sk
 }
 ```
 
-`calcular(respuestas)` solo lee `respuestas`. Nunca lee `datos` (incluido el sector) ni P1–P3 ni P35 a P43 (§2 principio 7, §6 l. 404).
+`calcular(respuestas)` solo lee `respuestas`. Nunca lee `datos` (incluido el sector) ni P1 a P3 ni P35 a P43 (§2 principio 7, §6 l. 404).
 
 ### 3.5 Objeto de cálculo (salida de `calcular`)
 
@@ -277,7 +277,7 @@ Todas las funciones son puras y exportadas como módulos ES. `puntuacion.js` imp
 - `total[c] = discriminante[c] + ancla[c]`.
 - `ranking = ordenarArquetipos(total, marcasMas)`; `dominante`, `secundario`, `tercero` = posiciones 1 a 3.
 - Porcentajes con `calcularPorcentajes(total[dominante], total[secundario])`.
-- `alerta = detectarAlerta(discriminante, marcasMas)`; `rankingDiscriminante = ordenarArquetipos(discriminante, marcasMas)`, cuyas tres primeras posiciones son los arquetipos que nombra y desglosa la alerta (D5).
+- `alerta = detectarAlerta(discriminante, marcasMas)`; `rankingDiscriminante = ordenarArquetipos(discriminante, marcasMas)`, cuyas tres primeras posiciones son los arquetipos que nombra y desglosa la alerta (D5) y de los que se muestra el párrafo explicativo (C1, Cambio 1).
 - `tension = esTension(dominante, secundario)`.
 - Se ordena y se muestra por `total`; la alerta usa solo `discriminante` (l. 406–409).
 - No lanza excepciones con entradas parciales o vacías: `calcular({})` devuelve ceros, `alerta: true` y porcentajes `null`.
@@ -295,6 +295,10 @@ Todas las funciones son puras y exportadas como módulos ES. `puntuacion.js` imp
 **`esCategoriaSaturada(dominante, arquetipoCategoria) → boolean`** (§10; D4). `true` solo si `arquetipoCategoria === dominante`. Con la categoría ausente o igual al secundario, `false`.
 
 **`ORDEN_SECCIONES`**: array con los 16 ids de §8 en su orden: `dominante, secundario, frase, queEs, paraQueSirve, tension, puede, noDebe, contexto, sombra, voz, paleta, notaFundador, notaCategoria, descarga, cierre`. El aviso del Héroe no tiene id propio: se pinta dentro del elemento `paraQueSirve`, justo a continuación de su texto (D8).
+
+**`ORDEN_SECCIONES_ALERTA`** (nuevo, Cambio 1, C1): array con los 6 ids de la pantalla de alerta en su orden: `mensaje, explicacion, arquetipos, desglose, descarga, cierre`. Como en `ORDEN_SECCIONES`, `descarga` es solo un id de posición: el resultado no lleva ningún campo de datos con ese nombre.
+
+**`parrafosAlerta(codigos) → [ { codigo, nombre, texto } ]`** (nueva, pura, Cambio 1, C2). Para cada código de la lista, en el mismo orden, devuelve `nombre = ARQUETIPOS[codigo].nombre` y `texto = TEXTOS.alerta.arquetipos[codigo]`. Un código desconocido lanza un error (nunca ocurre: viene de `rankingDiscriminante`).
 
 **`componerResultado(calculo, contexto) → Resultado`**. `contexto = { modo, clientes_vulnerables, restriccion_normativa, consecuencias_graves, arquetipo_categoria }`.
 
@@ -317,23 +321,25 @@ Sin alerta:
 }
 ```
 
-Con alerta (§6 l. 427–441; D5 y D6). Se muestra **en lugar** del resultado normal y solo lleva mensaje, desglose y cierre:
+Con alerta (§6 l. 427–441; D5; **Cambio 1: C1 a C4, que sustituyen a D6**). Se muestra **en lugar** del resultado normal y lleva, en el orden de `ORDEN_SECCIONES_ALERTA`, mensaje, explicación, un párrafo por cada uno de los tres arquetipos nombrados, desglose, botón de descarga y cierre:
 ```js
 {
   alerta: true,
-  mensaje: { titulo, cuerpo, pie },   // §6 l. 433–437; en cuerpo, {a}, {b}, {c} = nombre de §3 de los tres primeros de rankingDiscriminante
+  mensaje: { titulo, cuerpo, pie },   // §6 l. 433–437 (literal); en cuerpo, {a}, {b}, {c} = nombre de §3 de los tres primeros de rankingDiscriminante
+  explicacion,                         // Cambio 1: TEXTOS.alerta.explicacion (PROVISIONAL, 10.3)
+  arquetipos: [ { codigo, nombre, texto }, /* ×3, mismo orden que el desglose */ ],   // Cambio 1: parrafosAlerta(tres primeros de rankingDiscriminante)
   desglose: [ { codigo, nombre, discriminante }, /* ×3, en el orden de rankingDiscriminante */ ],
   cierre                               // §8 elemento 16
 }
 ```
-Sin `notaFundador` (aunque el modo sea fundador), sin botón de descarga y sin ningún otro elemento del resultado normal (D6). Lectura adoptada: la nota de provisionalidad de §4 l. 70 forma parte del resultado normal (§8 elemento 13), que la alerta sustituye. El desglose muestra nombre y `discriminante` (no `total`) de los tres (D5).
+Sin `notaFundador` (aunque el modo sea fundador) y sin ningún otro elemento del resultado normal (frase, tensión, listas, contexto, paleta, notas). Lectura adoptada: la nota de provisionalidad de §4 l. 70 forma parte del resultado normal (§8 elemento 13), que la alerta sustituye; el Cambio 1 lo deja escrito en la spec (10.3). El botón de descarga sí forma parte de la alerta (C1). El desglose muestra nombre y `discriminante` (no `total`) de los tres (D5).
 
-Regla de la paleta (§8 l. 751 y §3 l. 53): el color del arquetipo es contenido del resultado; nunca se usa en la interfaz.
+Regla de la paleta (§8 l. 751 y §3 l. 53): el color del arquetipo es contenido del resultado; nunca se usa en la interfaz. La pantalla de alerta no usa colores de arquetipo.
 
 ### 4.3 `envio.js`
 
 - `CLAVES_HOJA`: array de las 23 claves de 3.7.
-- `construirCarga({ datos, respuestas, libres, calculo, resultado, ahora }) → Record<string, string|number>`. Devuelve un objeto con **exactamente** `CLAVES_HOJA` como claves (ninguna de más ni de menos), con los formatos de 3.7. `arquetipo_categoria = respuestas.P35 ?? ''` y `categoria_saturada = textoSiNo(esCategoriaSaturada(calculo.dominante, respuestas.P35))`. `sector = datos.sector` (identificador de D10). `ahora` es un `Date` inyectable para pruebas. Si el valor de un campo de texto empieza por `=`, `+`, `-` o `@`, se antepone `'` para que Sheets no lo interprete como fórmula; verificar el comportamiento con la hoja real en la validación.
+- `construirCarga({ datos, respuestas, libres, calculo, resultado, ahora }) → Record<string, string|number>`. Devuelve un objeto con **exactamente** `CLAVES_HOJA` como claves (ninguna de más ni de menos), con los formatos de 3.7. `arquetipo_categoria = respuestas.P35 ?? ''` y `categoria_saturada = textoSiNo(esCategoriaSaturada(calculo.dominante, respuestas.P35))`. `sector = datos.sector` (identificador de D10). `ahora` es un `Date` inyectable para pruebas. Si el valor de un campo de texto empieza por `=`, `+`, `-` o `@`, se antepone `'` para que Sheets no lo interprete como fórmula; verificar el comportamiento con la hoja real en la validación. Los campos nuevos del resultado de alerta (`explicacion`, `arquetipos`) **no** se envían (C4).
 - `enviar(carga) → void`:
   ```js
   if (URL_APPS_SCRIPT === 'PENDIENTE') return;
@@ -349,7 +355,7 @@ Regla de la paleta (§8 l. 751 y §3 l. 53): el color del arquetipo es contenido
 
 ### 5.1 Empates (§6 l. 425; D12)
 - Empate en cualquier posición por `total` (primera, segunda o tercera) → más marcas «MÁS» del bloque 3 → orden alfabético del nombre. Ejemplo: solo P4 a P7 con `INDEPENDENCIA` deja IN, SA y EX en 8: dominante EX, secundario IN, tercero SA (Explorador, Inocente, Sabio).
-- Empate en `discriminante` al elegir d1, d2, d3: misma regla, y se usa para nombrar y desglosar los tres en la alerta (D5).
+- Empate en `discriminante` al elegir d1, d2, d3: misma regla, y se usa para nombrar, explicar y desglosar los tres en la alerta (D5, C1).
 - Empate exacto p1 = p2 → 50 % y 50 %.
 - Los arquetipos con puntuación negativa se ordenan por su valor real (sin recortar); el recorte a 0 solo se aplica al calcular porcentajes.
 
@@ -362,23 +368,23 @@ Regla de la paleta (§8 l. 751 y §3 l. 53): el color del arquetipo es contenido
 - La alerta usa `discriminante`, no `total`. Cuadrante ganador claro (ancla igual para 3 arquetipos) pero comportamiento bien definido → no salta. Cuadrante ganador claro con comportamiento plano → salta (§6 l. 409).
 - Límites: `d3 == d2 - 2` → salta (`>=`); `d3 == d2 - 3` → no salta por esa condición. Proporción exactamente 55 % (por ejemplo d1 = 11, d2 = 9) → **no** salta (`<`, no `<=`).
 - Discriminantes negativas o cero: `d1 <= 0` o `d1 + d2 <= 0` tras recortar → alerta, sin dividir.
-- Pantalla de alerta (D5, D6): mensaje con los nombres de los tres primeros por `discriminante`, desglose de esos tres con su nombre y su `discriminante`, y cierre. Nada más: ni nota de modo fundador ni botón de descarga.
+- Pantalla de alerta (D5, Cambio 1): mensaje con los nombres de los tres primeros por `discriminante`, explicación corta, un párrafo por cada uno de esos tres, desglose con su nombre y su `discriminante`, botón de descarga y cierre. Nada más: ni nota de modo fundador ni ningún otro elemento del resultado normal. Los casos límite propios de la pantalla de alerta están en 10.5.
 - Si hay alerta, se guardan y envían igualmente `arquetipo_dominante`, `secundario`, `tercero` (por `total`) y `alerta_sin_definir = sí`; la pantalla no los presenta como resultado. Los tres nombrados en pantalla (por `discriminante`) pueden no coincidir con esos tres: es esperado, porque cada ranking usa su puntuación (§6 l. 406–407).
 - `tension_dominante_secundario` y `categoria_saturada` se calculan siempre, con o sin alerta.
 
 ### 5.4 Divisiones por cero
 - Con respuestas **completas** no ocurre: la suma de los `total` es al menos 12 (bloque 3) − 6 (bloque 4) + 12 (bloque 5) + 24 (ancla) = 42, así que `p1 >= 4`; y la suma de los `discriminante` es al menos 18, lo que impide `d1 + d2 <= 0`.
-- Con respuestas parciales o vacías (pruebas, progreso corrupto) sí puede pasar; la guarda de 4.1 lo cubre. `calcular({})` → alerta `true`, porcentajes `null`, envío con esas columnas vacías.
+- Con respuestas parciales o vacías (pruebas, progreso corrupto) sí puede pasar; la guarda de 4.1 lo cubre. `calcular({})` → alerta `true`, porcentajes `null`, envío con esas columnas vacías. La pantalla de alerta se compone igualmente (con `rankingDiscriminante` todo a 0, los tres primeros son Amante, Bufón y Creador por orden alfabético).
 
 ### 5.5 Modo fundador
 - No cambia el cálculo: `calcular` no recibe el modo. Solo cambia el texto mostrado (P4–P6, P8, P10–P15, P17, P18, P39 y la nota del bloque 6) y se añade la nota 7.4 al resultado normal.
 - Si la pregunta no tiene variante (`fundador: null`), se muestra la de marca.
 - El modo se elige antes que nada. Cambiar de modo estando a medias (al retomar) solo cambia enunciados, no invalida respuestas, porque se guardan códigos.
-- En pantalla de alerta con modo fundador no se muestra la nota 7.4 (D6).
+- En pantalla de alerta con modo fundador no se muestra la nota 7.4 (C1; antes D6). Los textos de la alerta son idénticos en ambos modos.
 
 ### 5.6 Sector «Otro»
 - Se muestra un campo de texto, obligatorio si el sector es «Otro» (D11). `sector_otro` se envía solo si el sector es «Otro»; con otro sector se envía vacío aunque el usuario hubiera escrito algo antes de cambiar de opción (limpiar el campo al cambiar de sector). El valor de `sector` en ese caso es `otro` (D10).
-- El sector nunca entra en `calcular` (§2 principio 7). Prueba obligatoria.
+- El sector nunca entra en `calcular` (§2 principio 7). Prueba obligatoria. Tampoco modifica ningún texto de la alerta.
 
 ### 5.7 Bloques sin respuesta y obligatoriedad (D11)
 - **Obligatorios:** modo, nombre, marca, email, sector (y el texto si es «Otro») y P1 a P35. Los campos de texto se consideran vacíos si solo contienen espacios (se recortan). La interfaz no deja avanzar sin ellos y, en el bloque 3, exige `mas` y `menos` distintos (§5 l. 166).
@@ -405,15 +411,16 @@ Regla de la paleta (§8 l. 751 y §3 l. 53): el color del arquetipo es contenido
 - Email: validación de formato básica en cliente (presencia de `@` y punto); no hay más reglas en la spec.
 - Texto libre con saltos de línea o el carácter `|`: se envía tal cual; el separador ` | ` de `campos_libres` y `respuestas_abiertas` es solo legible, no se vuelve a parsear.
 
-### 5.12 Descarga por impresión (D7)
-- El botón (elemento 15 de §8, solo en el resultado normal) llama a `window.print()`. No hay librerías ni generación de archivos.
-- `@media print` en `estilos.css`: se oculta la barra de progreso, el propio botón y cualquier control de navegación; el resultado ocupa el ancho de la página; los colores de arquetipo se conservan con `print-color-adjust: exact` (y `-webkit-print-color-adjust: exact`); se evitan cortes de página dentro de una sección (`break-inside: avoid`).
-- En la pantalla de alerta no hay botón (D6).
+### 5.12 Descarga por impresión (D7; ampliada por C1)
+- El botón (elemento 15 de §8 y quinto elemento de la pantalla de alerta) llama a `window.print()`. No hay librerías ni generación de archivos.
+- `@media print` en `estilos.css`: se oculta la barra de progreso, el propio botón y cualquier control de navegación; el resultado ocupa el ancho de la página; los colores de arquetipo se conservan con `print-color-adjust: exact` (y `-webkit-print-color-adjust: exact`); se evitan cortes de página dentro de una sección (`break-inside: avoid`). Desde el Cambio 1 esas reglas cubren también los bloques de la alerta (mensaje, explicación, párrafos de arquetipo y filas del desglose).
+- En la pantalla de alerta el botón existe (C1; sustituye a D6, que lo excluía). Lleva su propia etiqueta (`UI.descargarAlerta`, PROVISIONAL) porque en la alerta no hay «ficha» que descargar (ver sección 11).
 - Si `window.print` no existe, el botón no hace nada visible y no lanza error.
 
 ### 5.13 Aviso del Héroe (D8)
 - Se muestra solo si el dominante es HE, inmediatamente después de «Para qué sirve» y antes de la tensión (elemento 6 de §8), con la etiqueta «Aviso importante:».
 - Con HE como secundario o tercero no se muestra. El resto de arquetipos no lo tienen (`aviso: null`).
+- No aparece en la alerta: los párrafos de la alerta no reutilizan `ficha.aviso` (C2).
 
 ## 6. Casos de prueba
 
@@ -462,6 +469,7 @@ Resultado esperado de `calcular(alObjetivo)` (cálculos comprobados a mano):
   - `contexto === null`; `notaFundador === null`.
   - `notaCategoria` = texto «Tu arquetipo se sale de lo que hace tu categoría…» (la categoría SA no es MA ni HC).
   - `paleta.acento === '#2E7D8C'`, `paleta.complemento === '#8B7355'`.
+  - Sin claves `explicacion` ni `arquetipos` (son exclusivas de la alerta; Cambio 1).
 - Variantes:
   - Con `clientes_vulnerables: true`: `contexto.bloques.length === 1`, con `general` de vulnerables y `matiz` de MA («Cuidado con el lenguaje de transformación espectacular…»); `cierre === null`.
   - Con `modo: 'fundador'` (mismo `calcular`): totales idénticos; `notaFundador` = texto 7.4.
@@ -490,6 +498,8 @@ Resultado esperado de `calcular(alObjetivo)` (cálculos comprobados a mano):
 19. **Tensiones.** Los 6 pares en ambos órdenes → `true`; `IN–SA`, `GO–CU`, `MA–MA` y `HC–BU` → `false`.
 20. **Modo.** No hay parámetro de modo; una prueba comprueba que `calcular.length === 1`.
 
+`puntuacion.test.js` no cambia con el Cambio 1: el cálculo no se toca.
+
 ### 6.3 `tests/datos.test.js`
 
 1. 43 preguntas con ids `P1` a `P43` únicos, y distribución por bloque 3, 4, 12, 3, 6, 6, 3, 6.
@@ -505,6 +515,11 @@ Resultado esperado de `calcular(alObjetivo)` (cálculos comprobados a mano):
 11. `TEXTOS.contexto`: matices presentes en las claves de §7.3: vulnerables (BU, RE, HE, MA, EX), normativa (HE, MA, GO, RE, AM, BU; AM y BU con el mismo texto), graves (IN, BU, EX, HC, CR). `TEXTOS.notaCategoria` tiene solo las claves `coincideDominante` y `distinta` (D3).
 12. **P35 (D1).** 12 opciones, una por arquetipo (12 códigos distintos), sin nombres de arquetipo en el texto y sin textos vacíos. La de SA es exactamente «Explican mucho y se posicionan como los que más saben» y no está marcada `provisional`; las otras 11 tienen `provisional === true`. Al aprobarse los borradores se quitan las marcas y se ajusta esta prueba.
 13. `barajar`: devuelve una permutación (mismos elementos), no muta la entrada, y **cada opción conserva su `codigo`** al barajar (regla 5). Con `aleatorio` inyectado es determinista.
+14. **Textos de la alerta (Cambio 1, C1 a C3; prueba nueva).**
+    - `TEXTOS.alerta` tiene exactamente las claves `titulo`, `cuerpo`, `pie`, `explicacion` y `arquetipos`. `titulo`, `cuerpo` y `pie` siguen siendo literales de §6 (l. 433–437; `cuerpo` conserva `{a}`, `{b}`, `{c}`).
+    - `explicacion` es una cadena no vacía de como mucho 300 caracteres, sin dígitos, sin `%` y sin marcadores `{…}` (C3: corta, sin porcentajes ni puntuaciones internas).
+    - `TEXTOS.alerta.arquetipos` tiene exactamente las 12 claves de `ORDEN_CODIGOS`. Cada texto: no vacío, de como mucho 300 caracteres, sin dígitos ni `{…}`, **empieza por `ARQUETIPOS[codigo].nombre`** y **contiene el `deseoCentral` del arquetipo con la inicial en minúscula** (garantiza que se apoya en §3 y no inventa el deseo). Ejemplo: IN empieza por «El Inocente» y contiene «sencillez y seguridad».
+    - Ningún texto de `arquetipos` contiene el nombre de otro arquetipo (evita mezclar fichas).
 
 ### 6.4 `tests/resultado.test.js`
 
@@ -525,9 +540,16 @@ Resultado esperado de `calcular(alObjetivo)` (cálculos comprobados a mano):
 7. **Paleta y colores.** `paleta.acento` = color del dominante, `complemento` = color del secundario, `fondo` `#FFFFFF`, `texto` `#000000`.
 8. **Orden §8.** `ORDEN_SECCIONES` es exactamente la lista de 16 elementos de 4.2, en el orden de §8 l. 740–755.
 9. **Aviso del Héroe (D8).** Con HE dominante, `aviso` es el texto de la ficha de HE; con HE secundario (por ejemplo MA dominante y HE secundario) o tercero, `aviso === null`; con cualquier otro dominante, `null`.
-10. **Alerta (D5, D6).** Con la fixture de 6.2.9 (alerta): `componerResultado` devuelve `alerta: true` con las únicas claves `alerta`, `mensaje`, `desglose` y `cierre`; no incluye `frase`, `puede`, `noDebe`, `notaFundador` ni ningún campo de descarga, tampoco con `modo: 'fundador'`. `mensaje.cuerpo` contiene «El Cuidador, El Gobernante y El Sabio» (sin marcadores `{a}`, `{b}`, `{c}`). `desglose` tiene 3 elementos, `[{ codigo:'CU', nombre:'El Cuidador', discriminante:2 }, { codigo:'GO', nombre:'El Gobernante', discriminante:2 }, { codigo:'SA', nombre:'El Sabio', discriminante:2 }]`, sin campo `total`. `cierre` es el texto de §8 elemento 16.
+10. **Alerta (D5, Cambio 1; prueba modificada).** Con la fixture de 6.2.9 (alerta, llamada `respuestasAlerta`): `componerResultado` devuelve `alerta: true` con las únicas claves `alerta`, `arquetipos`, `cierre`, `desglose`, `explicacion` y `mensaje` (antes eran cuatro; ahora seis); no incluye `frase`, `puede`, `noDebe`, `notaFundador` ni ningún campo de descarga, tampoco con `modo: 'fundador'`. `mensaje.cuerpo` contiene «El Cuidador, El Gobernante y El Sabio» (sin marcadores `{a}`, `{b}`, `{c}`). `desglose` tiene 3 elementos, `[{ codigo:'CU', nombre:'El Cuidador', discriminante:2 }, { codigo:'GO', nombre:'El Gobernante', discriminante:2 }, { codigo:'SA', nombre:'El Sabio', discriminante:2 }]`, sin campo `total`. `cierre` es el texto de §8 elemento 16.
 11. **Caso «Al Objetivo»** completo (6.1).
 12. El resultado no incluye las respuestas abiertas de los bloques 7 y 8 (§8 l. 757).
+13. **Explicación de la alerta (Cambio 1; nueva).** Con `respuestasAlerta`, en modo `marca` y en modo `fundador`: `explicacion === TEXTOS.alerta.explicacion` (mismo texto en ambos modos y para cualquier causa de alerta).
+14. **Párrafos de la alerta (Cambio 1; nueva).** Con `respuestasAlerta`: `arquetipos` tiene 3 elementos; sus `codigo` son `['CU','GO','SA']`, iguales y en el mismo orden que los de `desglose` y que los tres nombres de `mensaje.cuerpo`; cada elemento es `{ codigo, nombre, texto }` con `nombre = ARQUETIPOS[codigo].nombre` y `texto = TEXTOS.alerta.arquetipos[codigo]`. Sin `total` ni `color` en ningún elemento.
+15. **Los tres párrafos siguen a `rankingDiscriminante`, no a `total` (Cambio 1; nueva).** Fixture `alertaPorEstabilidad = { P4:'ESTABILIDAD', P5:'ESTABILIDAD', P6:'ESTABILIDAD', P7:'ESTABILIDAD', P26:'IN', P27:'MA', P28:'AM' }`: `discriminante` AM=IN=MA=2 y resto 0, `alerta === true`; `ranking.slice(0,3)` es `['CR','CU','GO']` (por `total`) pero `arquetipos.map(a => a.codigo)` es `['AM','IN','MA']` (Amante, Inocente, Mago, por `discriminante` con desempate alfabético). Los tres párrafos son los de AM, IN y MA.
+16. **`ORDEN_SECCIONES_ALERTA` (Cambio 1; nueva).** Es exactamente `['mensaje','explicacion','arquetipos','desglose','descarga','cierre']`. Las claves de datos del resultado de alerta son ese orden sin `descarga` (comprobar que cada id distinto de `descarga` existe como clave del resultado).
+17. **`parrafosAlerta` (Cambio 1; nueva).** `parrafosAlerta(['CU','GO','SA'])` devuelve 3 elementos en ese orden; con un código desconocido lanza. `parrafosAlerta([])` devuelve `[]`.
+18. **La alerta no contamina el resultado normal (Cambio 1; nueva).** El resultado de «Al Objetivo» no tiene las claves `explicacion`, `arquetipos`, `mensaje` ni `desglose`.
+19. **`calcular({})` compone la alerta sin error (Cambio 1; nueva).** `componerResultado(calcular({}), sinCondiciones)` devuelve `alerta: true` con `arquetipos` de Amante, Bufón y Creador (`['AM','BU','CR']`) y el desglose con `discriminante: 0` en los tres.
 
 ### 6.5 `tests/envio.test.js`
 
@@ -544,6 +566,7 @@ Resultado esperado de `calcular(alObjetivo)` (cálculos comprobados a mano):
 11. `enviar` con `globalThis.fetch` sustituido por un espía: se llama una vez, con `method: 'POST'`, `headers['Content-Type'] === 'text/plain;charset=utf-8'` (ninguna cabecera contiene `application/json`) y cuerpo `JSON.stringify(carga)`.
 12. `enviar` no lanza si `fetch` devuelve una promesa rechazada ni si lanza síncronamente.
 13. `URL_APPS_SCRIPT` es exactamente `https://script.google.com/macros/s/AKfycbz6j99B4irmmeFJbqub6H2LAr7vYh7rUxJ17Ljzq593Oj4_ZgXmOvE04YJSZfOAdCWylw/exec`.
+14. **La carga no cambia con la alerta (Cambio 1, C4; nueva).** Con `respuestasAlerta` y el `resultado` de alerta ya compuesto (con `explicacion` y `arquetipos`): `construirCarga` devuelve exactamente las mismas 23 claves; `alerta_sin_definir === 'sí'`; `arquetipo_dominante === 'HE'`, `arquetipo_secundario === 'MA'`, `arquetipo_tercero === 'RE'` (por `total`, ver 6.2.9); y ningún valor de la carga contiene texto de `TEXTOS.alerta.explicacion` ni de los párrafos.
 
 ### 6.6 Comprobaciones manuales (las hace el validador, no son `node --test`)
 Se anotan aquí porque la interfaz no se prueba en Node:
@@ -555,12 +578,12 @@ Se anotan aquí porque la interfaz no se prueba en Node:
 - Envío real de la fila de «Al Objetivo» a la hoja: las 23 columnas rellenas y en su sitio, con `sector` como identificador y los arquetipos como códigos.
 - Resultado de «Al Objetivo»: orden de secciones de §8, colores de arquetipo distintos de los de interfaz, texto legible sobre el color del Inocente `#F0E6D2` (texto oscuro).
 - Resultado con Héroe dominante: el «Aviso importante» aparece justo después de «Para qué sirve»; con Héroe secundario no aparece.
-- Pantalla de alerta (responder de forma plana en el bloque 3 hasta que salte): solo mensaje con los tres nombres, desglose con nombre y discriminante, y cierre; sin nota de fundador (probar también en modo fundador) y sin botón de descarga.
-- Descarga (D7): el botón abre el diálogo de impresión; en la vista previa se ven los colores de arquetipo, no aparecen la barra de progreso ni el botón y se puede guardar como PDF.
+- **Pantalla de alerta (Cambio 1; sustituye a la comprobación anterior).** Responder de forma plana en el bloque 3 hasta que salte. Comprobar, en este orden: mensaje con los tres nombres; explicación corta; tres párrafos, uno por cada nombre del mensaje y en el mismo orden; desglose con nombre y discriminante de los tres; botón de descarga; cierre. Sin nota de fundador (probar también en modo fundador, con los mismos textos que en modo marca) y sin ningún elemento del resultado normal. En 360 px se lee sin scroll horizontal y el botón es táctil (≥ 44 px). La explicación no muestra porcentajes ni puntos.
+- Descarga (D7, ampliada por C1): el botón abre el diálogo de impresión tanto en el resultado normal como en la alerta; en la vista previa se ven los colores de arquetipo (resultado normal), no aparecen la barra de progreso ni el botón, no se corta a mitad un párrafo de arquetipo de la alerta y se puede guardar como PDF.
 
 ## 7. Decisiones sobre las dudas
 
-Decisiones tomadas para las 12 dudas que tenía el plan. Son vinculantes para la implementación; el resto del documento ya las refleja.
+Decisiones tomadas para las 12 dudas que tenía el plan. Son vinculantes para la implementación; el resto del documento ya las refleja. El Cambio 1 (sección 10) sustituye a D6.
 
 **D1. Textos de P35.** La spec solo da el del Sabio (§5 l. 361–362). Decisión: el implementador redacta 11 borradores de las opciones restantes, marcados `PROVISIONAL` en el código (`provisional: true` y comentario) y listados en `handoff/02-implementacion.md` para revisión. Se aplica en 3.2 (`lista-arquetipo`), prueba 6.3.12 y paso 3 de la sección 8.
 
@@ -570,11 +593,11 @@ Decisiones tomadas para las 12 dudas que tenía el plan. Son vinculantes para la
 
 **D4. `categoria_saturada`.** Decisión: vale «sí» solo si `arquetipo_categoria` coincide con el dominante; en cualquier otro caso «no». Se aplica en `esCategoriaSaturada` (4.2), en 3.7 y 4.3 y en las pruebas 6.4.6 y 6.5.6.
 
-**D5. Arquetipos nombrados en la alerta y desglose.** Decisión: los tres primeros por `discriminante` (`rankingDiscriminante`); el desglose muestra el nombre y el `discriminante` de esos tres. Se aplica en `calcular` (4.1), en el objeto de alerta (4.2) y en las pruebas 6.2.9 y 6.4.10.
+**D5. Arquetipos nombrados en la alerta y desglose.** Decisión: los tres primeros por `discriminante` (`rankingDiscriminante`); el desglose muestra el nombre y el `discriminante` de esos tres. Se aplica en `calcular` (4.1), en el objeto de alerta (4.2) y en las pruebas 6.2.9 y 6.4.10. Desde el Cambio 1, esos mismos tres son también los de los párrafos explicativos (C1).
 
-**D6. Elementos de la pantalla de alerta.** Decisión: mensaje, desglose y cierre. Sin nota de modo fundador y sin botón de descarga. Se aplica en el objeto de alerta (4.2), en 5.3, 5.5 y 5.12 y en las pruebas 6.4.10 y 6.6.
+**D6. Elementos de la pantalla de alerta. SUSTITUIDA por C1 (Cambio 1).** Decisión original: mensaje, desglose y cierre; sin nota de modo fundador y sin botón de descarga. Ahora: mensaje, explicación, párrafos, desglose, botón de descarga y cierre; sigue sin nota de modo fundador. Se aplica en el objeto de alerta (4.2), en 5.3, 5.5 y 5.12 y en las pruebas 6.4.10, 6.4.13 a 6.4.19 y 6.6.
 
-**D7. Descarga de la ficha.** Decisión: el botón llama a `window.print()`, con estilos de impresión (`@media print`) para guardar como PDF, sin dependencias. Se aplica en `estilos.css` e `interfaz.js` (sección 2) y en 5.12.
+**D7. Descarga de la ficha.** Decisión: el botón llama a `window.print()`, con estilos de impresión (`@media print`) para guardar como PDF, sin dependencias. Se aplica en `estilos.css` e `interfaz.js` (sección 2) y en 5.12. Desde el Cambio 1 el botón está también en la pantalla de alerta.
 
 **D8. Aviso importante del Héroe.** Decisión: se muestra justo después de «Para qué sirve», solo si HE es dominante; si HE es secundario no se muestra. Se aplica en `ficha.aviso` (3.3), en `componerResultado` (4.2), en 5.13 y en las pruebas 6.3.10 y 6.4.9.
 
@@ -588,14 +611,14 @@ Decisiones tomadas para las 12 dudas que tenía el plan. Son vinculantes para la
 
 ## 8. Orden de implementación
 
-Cada paso termina con su comprobación. No se avanza si `npm test` (`node --test tests/`) falla.
+Cada paso termina con su comprobación. No se avanza si `npm test` (`node --test tests/`) falla. Los pasos 1 a 9 ya están hechos (commit `6e33591`); el Cambio 1 se implementa después, en el paso 10.
 
 1. **`src/js/config.js`.** Crear con la URL de 3.6. Comprobación: la prueba 6.5.13 (se escribe en el paso 7; aquí solo se revisa a ojo).
 2. **`src/data/arquetipos.js`.** Transcribir las 12 fichas, colores, motivaciones, tensiones y textos de resultado, literales (referencias de línea en 3.3). Tensión con marcadores de nombre y de deseo central (D2); `notaCategoria` solo con las claves `coincideDominante` y `distinta` (D3); `aviso` solo en HE (D8). Comprobación: `tests/datos.test.js` puntos 9, 10 y 11.
 3. **`src/data/cuestionario.js`.** Transcribir bloques, preguntas, opciones, variantes (tabla 3.2), sectores con su identificador (D10) y textos del bloque 6. Redactar los 11 borradores de P35 con `provisional: true` (D1). Comprobación: `tests/datos.test.js` puntos 1 a 8 y 12. Anotar borradores e identificadores para `handoff/02-implementacion.md`.
 4. **`src/js/utilidades.js` y `tests/datos.test.js` completo.** Comprobación: la tabla del bloque 3 cumple sus tres condiciones (ya verificado a mano al planificar: 4 apariciones por arquetipo, máximo 2 por pareja, las 12 parejas intracuadrante cubiertas).
 5. **`src/js/puntuacion.js` y `tests/puntuacion.test.js`.** Implementar 4.1, con el desempate de D12 en todas las posiciones. Comprobación: el caso «Al Objetivo» da exactamente la tabla de 6.1.
-6. **`src/js/resultado.js` y `tests/resultado.test.js`.** Implementar 4.2: tensión con deseo central (D2), nota de categoría nula si coincide con el secundario (D3), `esCategoriaSaturada` (D4), aviso del Héroe (D8) y pantalla de alerta con mensaje, desglose y cierre (D5, D6). Comprobación: la frase de MA + HC es literal a §7.1.
+6. **`src/js/resultado.js` y `tests/resultado.test.js`.** Implementar 4.2: tensión con deseo central (D2), nota de categoría nula si coincide con el secundario (D3), `esCategoriaSaturada` (D4), aviso del Héroe (D8) y pantalla de alerta (D5; la versión con explicación y párrafos es el Cambio 1, paso 10). Comprobación: la frase de MA + HC es literal a §7.1.
 7. **`src/js/envio.js` y `tests/envio.test.js`.** Implementar 4.3 con códigos de arquetipo (D9), sector como identificador (D10) y `categoria_saturada` (D4). Comprobación: `CLAVES_HOJA` igual a `COLUMNAS` de `docs/apps-script.gs`.
 8. **`src/index.html`, `src/css/estilos.css`, `src/js/interfaz.js`.**
    - Flujo: retomar o empezar → modo → datos (nombre, marca, email, sector y texto si Otro) → bloques 1 a 8 → resultado o alerta. Una pregunta por pantalla en móvil; campo libre opcional al final de cada bloque 1 a 8 (no en datos iniciales).
@@ -604,25 +627,265 @@ Cada paso termina con su comprobación. No se avanza si `npm test` (`node --test
    - Bloque 3: por opción, botones «Más me describe» y «Menos me describe» (skill `marca-al-objetivo`); no permite el mismo en ambas; exige las dos marcas.
    - Bloque 6: encabezado obligatorio de §6 l. 339–341 y, en modo fundador, la nota de l. 343; escala 1 a 5 con etiquetas en los extremos, con el `name` de radio por pregunta y teclado.
    - Guardado en cada cambio (`try/catch`), clave `alobjetivo-quiz-progreso`; oferta de retomar.
-   - Al finalizar: `calcular` → `componerResultado` → render → `construirCarga` + `enviar` → limpiar `localStorage`. Render normal en el orden de `ORDEN_SECCIONES`, con el aviso del Héroe tras «Para qué sirve» solo si HE es dominante (D8). Render de alerta: mensaje, desglose y cierre, sin nota de fundador ni botón (D6).
-   - Botón de descarga (solo en el resultado normal): `window.print()`, con `@media print` en `estilos.css` (D7, 5.12).
+   - Al finalizar: `calcular` → `componerResultado` → render → `construirCarga` + `enviar` → limpiar `localStorage`. Render normal en el orden de `ORDEN_SECCIONES`, con el aviso del Héroe tras «Para qué sirve» solo si HE es dominante (D8). Render de alerta: en el orden de `ORDEN_SECCIONES_ALERTA` (Cambio 1).
+   - Botón de descarga: `window.print()`, con `@media print` en `estilos.css` (D7, 5.12), en el resultado normal y en la alerta (Cambio 1).
    - Texto de contraste sobre el color del arquetipo por luminancia (el Inocente `#F0E6D2` lleva texto oscuro).
    - Los textos de interfaz que no dicta la spec (botones, bienvenida, etiquetas del campo libre, mensajes de campo obligatorio) son texto funcional, en español de España, de tú, sin emojis, y se listan en `handoff/02-implementacion.md` para que Elizabeth los revise. No se presentan como texto de la spec.
    - El resultado no muestra P36 a P43 (§8 l. 757).
 9. **Cierre.** Ejecutar `npm test`; abrir `src/index.html` con un servidor estático local (los módulos ES no cargan desde `file://`) y recorrer las comprobaciones de 6.6; escribir `handoff/02-implementacion.md` con qué se hizo, los 11 borradores de P35 marcados PROVISIONAL, los 21 identificadores de sector y los textos de interfaz provisionales.
+10. **Cambio 1: pantalla de alerta.** Se ejecuta sobre lo ya implementado, en el orden de 10.6 (datos y su prueba, `resultado.js` y sus pruebas, fixtures y prueba de envío, interfaz, estilos, validación manual y actualización de `handoff/02-implementacion.md`). No requiere que la spec ya esté editada: los textos de 10.3 se implementan como PROVISIONAL y se pasan a la spec cuando Elizabeth los apruebe.
 
 ## 9. Trazabilidad spec → archivos
 
 | Spec | Se implementa en |
 |---|---|
 | §1, §3 (motivaciones, códigos, colores) | `data/arquetipos.js` |
-| §4 (modos) | `data/cuestionario.js` (`PREGUNTA_MODO`, variantes), `interfaz.js` (selección), `resultado.js` (nota 7.4) |
+| §4 (modos) | `data/cuestionario.js` (`PREGUNTA_MODO`, variantes), `interfaz.js` (selección), `resultado.js` (nota 7.4; ausente en la alerta) |
 | §5 datos iniciales y sectores | `data/cuestionario.js`, `interfaz.js` |
 | §5 bloques 1 a 8 | `data/cuestionario.js` |
-| §6 puntuación y alerta | `js/puntuacion.js` (cálculo), `js/resultado.js` (pantalla de alerta) |
+| §6 puntuación y alerta | `js/puntuacion.js` (cálculo), `js/resultado.js` (pantalla de alerta), `data/arquetipos.js` (mensaje, explicación y párrafos), `js/interfaz.js` (render de la alerta) |
 | §7.1 a 7.5 | `data/arquetipos.js` (textos), `js/resultado.js` (composición) |
 | §7.6 fichas | `data/arquetipos.js` |
+| §7.7 textos de la alerta (propuesto, Cambio 1) | `data/arquetipos.js` (`TEXTOS.alerta.explicacion` y `TEXTOS.alerta.arquetipos`), `js/resultado.js` (`parrafosAlerta`) |
 | §8 orden de resultado | `js/resultado.js` (`ORDEN_SECCIONES`), `js/interfaz.js` (render), `css/estilos.css` (impresión) |
-| §9 requisitos técnicos | `js/interfaz.js` (móvil, progreso, `localStorage`), `js/envio.js` (POST `text/plain`), `css/estilos.css` |
-| §10 columnas | `js/envio.js` (`CLAVES_HOJA`, `construirCarga`) |
+| §8 orden de la pantalla de alerta (propuesto, Cambio 1) | `js/resultado.js` (`ORDEN_SECCIONES_ALERTA`), `js/interfaz.js` (render), `css/estilos.css` |
+| §9 requisitos técnicos | `js/interfaz.js` (móvil, progreso, `localStorage`), `js/envio.js` (POST `text/plain`), `css/estilos.css` (impresión) |
+| §10 columnas | `js/envio.js` (`CLAVES_HOJA`, `construirCarga`); sin cambios por el Cambio 1 |
 | §11, §12 | Sin efecto en el código |
+
+## 10. Cambio 1: pantalla de alerta
+
+### 10.1 Qué cambia y por qué
+
+Hasta ahora la pantalla de alerta (resultado sin definir) mostraba el mensaje de §6, el desglose de los tres y el cierre (D5, D6). Un cliente que no conoce los doce arquetipos ve tres nombres («El Cuidador, El Gobernante y El Sabio») sin saber qué significan ni por qué el resultado no le da un dominante. El cambio añade, sin tocar el cálculo ni el envío, lo necesario para que la pantalla se entienda por sí sola y se pueda llevar a la sesión en papel o PDF.
+
+Decisiones tomadas (vinculantes para esta implementación; D6 queda sustituida):
+
+- **C1. Contenido y orden.** La pantalla de alerta lleva, en este orden: (1) mensaje, (2) explicación corta de por qué el resultado no es concluyente, (3) un párrafo breve por cada uno de los tres arquetipos nombrados en la alerta, (4) desglose (nombre y discriminante de esos tres), (5) botón de descarga que abre `window.print()` con estilos de impresión, (6) cierre. Sigue sin llevar la nota de modo fundador. Los «tres nombrados» son, como en D5, los tres primeros de `rankingDiscriminante`.
+- **C2. Párrafos de arquetipo.** Se apoyan solo en el contenido que ya existe en la spec para cada arquetipo: el «Qué es» de §7.6 y el «Deseo central» de §3. No añaden rasgos nuevos. Van marcados PROVISIONAL para revisión de Elizabeth.
+- **C3. Explicación.** Corta, en español de España, de tú, sin tecnicismos ni porcentajes de puntuación interna. Es un único texto fijo (no depende del modo, de la causa de la alerta ni de los arquetipos). PROVISIONAL.
+- **C4. El envío no cambia.** Las 23 columnas, su formato y su contenido son los mismos con o sin alerta. Los textos nuevos no se envían.
+
+Nota sobre C3: el desglose sigue mostrando la puntuación discriminante de cada arquetipo (D5, ya decidido). C3 solo afecta a la explicación.
+
+### 10.2 Apartados de `docs/especificacion.md` que cambian
+
+| Apartado de la spec | Cambio | Texto propuesto |
+|---|---|---|
+| §4 (l. 70, lista «Qué cambia en modo fundador») | Aclarar que la nota de provisionalidad no aparece en la alerta | 10.3.A |
+| §6, subsección «Alerta de marca sin definir» (l. 427–441) | Sustituir la frase «Debajo, mostrar igualmente el desglose de los tres.» por la definición completa de la pantalla (qué tres arquetipos, qué elementos, en qué orden, qué no lleva, que el envío no cambia). El mensaje literal y la nota de umbrales no se tocan | 10.3.B |
+| §7.4 (l. 526–528) | Añadir que la nota no se muestra en la alerta | 10.3.C |
+| §7, nueva subsección **7.7** al final de §7 (tras la ficha del Gobernante, l. 734) | Textos nuevos de la alerta: explicación y 12 párrafos | 10.3.D |
+| §8 (tras l. 757) y elemento 15 (l. 754) | Añadir el orden de la pantalla de alerta y precisar el botón | 10.3.E |
+| §9 (l. 761–767) | Añadir el requisito de la descarga por impresión (D7, que la spec aún no recoge) | 10.3.F |
+| §10 | **Sin cambios** (C4) | — |
+| §11 punto 7 (l. 815) | **Sin cambios** | — |
+| §1, §2, §3, §5, §7.1 a 7.3, §7.5, §7.6, §12 | Sin cambios | — |
+
+### 10.3 Texto propuesto para la especificación (listo para pegar)
+
+Convención: todo lo que sigue es redacción nueva, no literal de la spec, y por tanto está marcado **PROVISIONAL** hasta que lo revise Elizabeth. La marca `[PROVISIONAL]` es de revisión: **se quita al pegar** cada texto en la spec cuando se apruebe. Los bloques entre líneas `----- pegar desde aquí -----` y `----- hasta aquí -----` son el texto exacto; lo demás es indicación.
+
+#### 10.3.A — §4, línea 70
+
+Sustituir la línea `- Resultado: añade la nota de provisionalidad.` por:
+
+```
+----- pegar desde aquí -----
+- Resultado: añade la nota de provisionalidad. No se muestra en la pantalla de alerta (§6).
+----- hasta aquí -----
+```
+[PROVISIONAL]
+
+#### 10.3.B — §6, subsección «Alerta de marca sin definir»
+
+Sustituir la línea `Debajo, mostrar igualmente el desglose de los tres.` (l. 439) por el bloque siguiente. El encabezado de la subsección, las dos condiciones, el mensaje en cita y la nota «Umbrales provisionales» quedan como están.
+
+```
+----- pegar desde aquí -----
+[X], [Y] y [Z] son los tres arquetipos con mayor `puntuacion_discriminante`, con el mismo desempate que el resto de posiciones (más marcas «la que MÁS» en el bloque 3; si persiste, orden alfabético del nombre). No tienen por qué coincidir con el dominante, el secundario y el tercero del resultado normal, que se ordenan por `puntuacion_total`.
+
+La pantalla de alerta lleva, en este orden:
+
+1. El mensaje anterior.
+2. Una explicación corta de por qué el resultado no es concluyente (7.7).
+3. Para cada uno de [X], [Y] y [Z], un párrafo breve que explica qué es ese arquetipo y qué quiere (7.7).
+4. El desglose de los tres: nombre y `puntuacion_discriminante` de cada uno.
+5. El botón de descarga (§9).
+6. El cierre (§8, elemento 16).
+
+No lleva la nota de modo fundador (7.4) ni ningún otro elemento del resultado normal (§8). El envío de datos (§10) es el mismo con alerta y sin ella: se guardan y envían dominante, secundario y tercero por `puntuacion_total`, y `alerta_sin_definir = sí`.
+----- hasta aquí -----
+[PROVISIONAL]
+
+#### 10.3.C — §7.4, al final de la sección
+
+Añadir tras la cita de la nota:
+
+```
+----- pegar desde aquí -----
+La nota no se muestra en la pantalla de alerta (§6).
+----- hasta aquí -----
+```
+[PROVISIONAL]
+
+#### 10.3.D — §7, nueva subsección 7.7 (al final de §7, antes de «## 8.»)
+
+```
+----- pegar desde aquí -----
+### 7.7 — Textos de la pantalla de alerta
+
+Se muestran solo cuando salta la alerta (§6), en el orden que define §6. Son los mismos en modo marca y en modo fundador.
+
+#### Explicación
+
+> No hay un resultado concluyente porque, en tus respuestas, ningún carácter se separa lo bastante de los demás. Si eligiéramos uno como el principal, estaríamos adivinando. Lo que sí podemos decirte es cuáles son los tres que más pesan, para que veas entre cuáles tienes que decidir.
+
+#### Los tres arquetipos
+
+Un párrafo por cada arquetipo nombrado en la alerta, en el mismo orden que el mensaje y el desglose. Cada párrafo sale de la ficha del arquetipo: el «Qué es» de 7.6 y el «Deseo central» de §3. No añade rasgos nuevos.
+
+- **IN.** El Inocente cree que las cosas no tienen por qué ser complicadas: quita capas, jerga y letra pequeña hasta que el cliente entiende. Lo que quiere es sencillez y seguridad.
+- **SA.** El Sabio no hace por ti: te ayuda a entender el porqué de cada decisión para que decidas con tu propio criterio. Lo que quiere es comprender la verdad.
+- **EX.** El Explorador se mueve antes que los demás: prueba, descarta y comparte el camino mientras lo recorre. Lo que quiere es libertad para descubrir.
+- **HE.** El Héroe cree que el esfuerzo bien dirigido da resultados, y lo organiza todo alrededor de conseguirlos: objetivos, medición, logro. Lo que quiere es demostrar valía con logros.
+- **RE.** El Rebelde señala lo que no funciona, aunque incomode: existe contra una práctica del sector o una creencia que todos aceptan sin discutir. Lo que quiere es cambiar lo que no funciona.
+- **MA.** El Mago cambia la situación de raíz, no la mejora un poco: trabaja sobre la forma en que el cliente ve su propio problema. Lo que quiere es transformar la realidad.
+- **HC.** El Hombre común trata a todo el mundo de igual a igual, sin ponerse por encima ni hacer de gurú: el cliente se reconoce en él. Lo que quiere es pertenecer y conectar.
+- **AM.** El Amante cuida cómo se siente el cliente en cada punto del recorrido, no solo el resultado final: el detalle, la estética y la experiencia. Lo que quiere es conexión e intimidad.
+- **BU.** El Bufón quita hierro: usa el humor para que algo difícil se haga llevadero y para que la gente baje la guardia. Lo que quiere es disfrutar el momento.
+- **CU.** El Cuidador pone por delante que el cliente esté bien atendido, y eso condiciona qué incluye el servicio, cómo responde y cuánto acompaña. Lo que quiere es proteger a los demás.
+- **CR.** El Creador hace cosas que antes no existían y le importa que estén bien hechas: no entrega plantillas, cada trabajo es una pieza. Lo que quiere es crear algo duradero.
+- **GO.** El Gobernante pone orden: tiene método y condiciones claras, y no las negocia. Lo que quiere es liderar y ordenar.
+----- hasta aquí -----
+[PROVISIONAL]
+
+Para el implementador, la correspondencia con el código es: la cita de «Explicación» es `TEXTOS.alerta.explicacion` (sin el `>`); cada viñeta de «Los tres arquetipos» es `TEXTOS.alerta.arquetipos[CODIGO]` (sin el código ni los asteriscos; el texto empieza por «El Inocente», «El Sabio», etc.). Trazabilidad de cada párrafo (comprobable por la prueba 6.3.14):
+
+| Código | «Qué es» (§7.6) en el que se apoya | «Deseo central» (§3) |
+|---|---|---|
+| IN | «Cree que las cosas no tienen por qué ser complicadas. Su fuerza está en quitar capas: donde otros añaden jerga, requisitos y letra pequeña, el Inocente simplifica hasta que el cliente entiende.» | Sencillez y seguridad |
+| SA | «Su valor no es hacer por ti, es que entiendas. Enseña el porqué de cada decisión y entrega criterio» | Comprender la verdad |
+| EX | «Se mueve antes que los demás. Prueba, descarta, vuelve a probar, y comparte el camino mientras lo recorre.» | Libertad para descubrir |
+| HE | «Cree que el esfuerzo bien dirigido da resultados y organiza todo alrededor de conseguirlos: objetivos, medición, logro.» | Demostrar valía con logros |
+| RE | «Señala lo que no funciona, aunque sea incómodo. Existe contra algo: una práctica del sector, una creencia instalada, una forma de hacer las cosas que todos aceptan sin discutir.» | Cambiar lo que no funciona |
+| MA | «Cambia la situación de raíz, no la mejora un poco. Trabaja sobre la forma en que el cliente ve su propio problema» | Transformar la realidad |
+| HC | «Trata a todo el mundo de igual a igual. No se pone por encima ni hace de gurú. […] el cliente se reconoce» | Pertenecer y conectar |
+| AM | «Le importa cómo se siente el cliente en cada punto del recorrido, no solo el resultado final. Cuida el detalle, la estética y la experiencia» | Conexión e intimidad |
+| BU | «Quita hierro. Usa el humor para que algo difícil se haga llevadero y para que la gente baje la guardia.» | Disfrutar el momento |
+| CU | «Su prioridad es que el cliente esté bien atendido, y eso condiciona todas sus decisiones: qué incluye el servicio, cómo responde, cuánto acompaña.» | Proteger a los demás |
+| CR | «Hace cosas que antes no existían y le importa que estén bien hechas. No entrega plantillas: cada trabajo es una pieza.» | Crear algo duradero |
+| GO | «Pone orden. Tiene método, condiciones claras y no las negocia.» | Liderar y ordenar |
+
+Cada párrafo son dos frases: la primera reformula el «Qué es» en tercera persona y sin jerga; la segunda es «Lo que quiere es» más el deseo central de §3 con la inicial en minúscula (en HE, «demostrar valía con logros», literal de §3, sin añadir «su»). No se usan «Para qué sirve», «Puede», «No debe», «Sombra» ni «Voz», ni el aviso del Héroe.
+
+#### 10.3.E — §8, orden de la pantalla de alerta
+
+Sustituir la línea `15. Botón de descarga de la ficha.` (l. 754) por la primera línea del bloque, y añadir el resto tras la línea «Las respuestas abiertas de los bloques 7 y 8 no se muestran. Solo se guardan.» (l. 757).
+
+```
+----- pegar desde aquí (sustituye a la línea 15) -----
+15. Botón de descarga de la ficha (§9).
+----- hasta aquí -----
+
+----- pegar desde aquí (después de la línea 757) -----
+### Pantalla de alerta: orden
+
+Cuando salta la alerta (§6) se muestra esta pantalla en lugar de la anterior:
+
+1. Mensaje «Tu marca todavía no ha elegido un carácter» (§6).
+2. Explicación de por qué el resultado no es concluyente (7.7).
+3. Un párrafo por cada uno de los tres arquetipos nombrados (7.7).
+4. Desglose de los tres: nombre y puntuación discriminante.
+5. Botón de descarga (§9).
+6. Cierre: «Esto es el punto de partida. Lo afinamos juntas en la sesión.»
+
+Sin nota de modo fundador.
+----- hasta aquí -----
+```
+[PROVISIONAL] (el cierre es literal de la línea 16 de esta misma sección)
+
+#### 10.3.F — §9, requisito de descarga
+
+Añadir como viñeta al final de la lista de requisitos técnicos (tras «Limpiar `localStorage`…», l. 767):
+
+```
+----- pegar desde aquí -----
+- **Descarga.** El botón de descarga llama a `window.print()`. La hoja de estilos incluye un bloque `@media print` que oculta la barra de progreso, la navegación y el propio botón, conserva los colores de arquetipo y evita cortes de página dentro de una sección. Sin librerías: el usuario guarda como PDF desde el diálogo de impresión. Vale para el resultado y para la pantalla de alerta.
+----- hasta aquí -----
+```
+[PROVISIONAL] (recoge la decisión D7, que hasta ahora no estaba escrita en la spec)
+
+#### 10.3.G — Textos de interfaz nuevos (no van a la spec)
+
+Son texto funcional de la interfaz, en `interfaz.js`, no contenido de la spec. Se listan en `handoff/02-implementacion.md` para revisión.
+
+- `UI.descargarAlerta`: «Descargar resumen» [PROVISIONAL]. En la alerta no hay «ficha» que descargar (ver sección 11).
+- `UI.ayudaDescarga` (ya existe): «Se abrirá el diálogo de impresión. Elige «Guardar como PDF» para descargarla.» Se reutiliza sin cambios.
+- `UI.desgloseTitulo` (ya existe): «Así se reparten tus respuestas». Sin cambios.
+
+### 10.4 Archivos afectados
+
+Archivos que cambian (6) y archivos que no (verificados):
+
+| Archivo | Cambio |
+|---|---|
+| `src/data/arquetipos.js` | En `TEXTOS.alerta` (hoy `titulo`, `cuerpo`, `pie`) añadir `explicacion` (cadena de 10.3.D) y `arquetipos` (objeto con las 12 claves de `ORDEN_CODIGOS`, texto de 10.3.D), con comentario `// PROVISIONAL` sobre ambos. `titulo`, `cuerpo` y `pie` no se tocan. |
+| `src/js/resultado.js` | Exportar `ORDEN_SECCIONES_ALERTA` y `parrafosAlerta`. Modificar la función interna `resultadoAlerta`: añadir `explicacion` y `arquetipos` al objeto devuelto (ver 4.2). `componerResultado` no cambia de firma. |
+| `src/js/interfaz.js` | Importar `ORDEN_SECCIONES_ALERTA`. Reescribir `pintarAlerta(r)` como un mapa de constructores por id, recorrido con `ORDEN_SECCIONES_ALERTA` (igual que `pintarResultado` con `ORDEN_SECCIONES`). Extraer el constructor de `descarga` de `pintarResultado` a una función compartida `seccionDescarga(etiqueta)` (botón `window.print()` protegido con `typeof window.print === 'function'`, más `UI.ayudaDescarga`, dentro de una `section` con clase `no-imprimir`) y usarla en las dos pantallas: `UI.descargar` en el resultado, `UI.descargarAlerta` en la alerta. Añadir `UI.descargarAlerta`. El `h2` del mensaje conserva `tabindex: -1` y `data-foco` (foco al mostrar la pantalla). Cada elemento de la alerta va en su propia `section` (para el `break-inside: avoid` de impresión). |
+| `src/css/estilos.css` | Estilos de `.parrafo-arquetipo` y `.explicacion-alerta` (texto legible, separación vertical, solo colores de la paleta de interfaz; ningún color de arquetipo). En `@media print`, añadir `.parrafo-arquetipo`, `.explicacion-alerta` y `.desglose li` a la lista de `break-inside: avoid`. El selector actual `.resultado > section` ya cubre las secciones de la alerta si cada elemento va en su `section`. |
+| `tests/datos.test.js` | Añadir la prueba 6.3.14. |
+| `tests/resultado.test.js` | Modificar la prueba de alerta (6.4.10: seis claves) y añadir 6.4.13 a 6.4.19. |
+| `tests/fixtures.js` | Exportar `respuestasAlerta` (hoy declarada dentro de `resultado.test.js`, la de 6.2.9) y `alertaPorEstabilidad` (6.4.15), para que `envio.test.js` y `resultado.test.js` usen la misma. `resultado.test.js` la importa desde ahí. |
+| `tests/envio.test.js` | Añadir la prueba 6.5.14. |
+
+Sin cambios: `src/index.html`, `src/js/puntuacion.js`, `src/js/envio.js`, `src/js/config.js`, `src/js/utilidades.js`, `src/data/cuestionario.js`, `tests/puntuacion.test.js`, `docs/apps-script.gs`, `docs/especificacion.md` (esta última se edita a mano tras la aprobación de Elizabeth, con los textos de 10.3).
+
+### 10.5 Funciones nuevas o modificadas y casos límite
+
+| Función | Estado | Entrada y salida | Reglas |
+|---|---|---|---|
+| `parrafosAlerta(codigos)` | Nueva, en `resultado.js` (exportada) | `Codigo[] → [{ codigo, nombre, texto }]` | Mismo orden que la entrada. `nombre` de `ARQUETIPOS`; `texto` de `TEXTOS.alerta.arquetipos`. Código desconocido: lanza. Lista vacía: `[]`. Pura. |
+| `ORDEN_SECCIONES_ALERTA` | Nueva constante, en `resultado.js` | `['mensaje','explicacion','arquetipos','desglose','descarga','cierre']` | Fuente única del orden de la pantalla (10.3.E). `descarga` no es clave del resultado. |
+| `resultadoAlerta(calculo)` | Modificada, interna a `resultado.js` | `Calculo → { alerta:true, mensaje, explicacion, arquetipos, desglose, cierre }` | Toma `[a, b, c] = calculo.rankingDiscriminante.slice(0, 3)`; los tres consumidores (`mensaje.cuerpo`, `arquetipos`, `desglose`) usan esa misma lista, por eso coinciden siempre en nombres y orden. |
+| `componerResultado(calculo, contexto)` | Sin cambio de firma | — | Con `calculo.alerta` devuelve el objeto de alerta y **no** lee `contexto.modo` (ni ningún otro campo de `contexto`). |
+| `pintarAlerta(r)` | Modificada, en `interfaz.js` | Pinta las 6 secciones en el orden de `ORDEN_SECCIONES_ALERTA` | Sin nota de fundador. Botón con `UI.descargarAlerta`. |
+| `seccionDescarga(etiqueta)` | Nueva (extraída de `pintarResultado`), en `interfaz.js`, no exportada | Devuelve el nodo de la sección del botón | `window.print()` solo si existe; la sección lleva `no-imprimir`. |
+
+Casos límite propios del cambio:
+
+- **Empate en discriminante entre los tres nombrados.** El orden de mensaje, párrafos y desglose es el de `rankingDiscriminante` (desempate por marcas «MÁS» y luego alfabético, D12). Ejemplo con `alertaPorEstabilidad`: AM, IN, MA (Amante, Inocente, Mago), aunque el resultado normal ordenaría CR, CU, GO por `total`.
+- **Los tres nombrados no coinciden con dominante, secundario y tercero.** Es esperado (5.3). Los párrafos explican los tres de la alerta, nunca los del `total`.
+- **Discriminantes negativas o cero entre los tres nombrados** (por ejemplo `calcular({})`, todo a 0, o el caso `d = (−1, −3, −5)` de 6.2.12). La alerta se compone igual: párrafos de los tres primeros (en `calcular({})`: AM, BU, CR) y desglose con sus valores, que pueden ser negativos («−1 punto», «−3 puntos»; la interfaz ya pluraliza por valor absoluto).
+- **Modo fundador.** Mismos textos, sin nota 7.4. `componerResultado` no lee el modo en la alerta.
+- **Sector «Otro».** No interviene: el sector no modifica ni el cálculo ni los textos.
+- **Bloques sin respuesta.** Si faltan respuestas (solo en pruebas o progreso corrupto), la alerta se compone con lo que haya; nunca lanza, porque `rankingDiscriminante` siempre trae 12 códigos válidos.
+- **División por cero.** Sin efecto: la alerta no calcula porcentajes; la guarda de 4.1 sigue siendo la del cálculo.
+- **Fuera de contexto.** Recargar la pantalla de alerta empieza de cero (5.10). El `localStorage` se limpia tras pintar la alerta y lanzar el envío, como con el resultado normal.
+- **Impresión sin `window.print`.** El botón no hace nada visible y no lanza error.
+- **Texto largo en móvil.** Los párrafos son cortos (como mucho 300 caracteres, prueba 6.3.14) para no alargar la pantalla; comprobación manual en 360 px (6.6).
+- **Colores.** La alerta no usa colores de arquetipo (son contenido del resultado normal, §3 l. 53); solo la paleta de interfaz.
+
+### 10.6 Orden de implementación del cambio (paso 10 de la sección 8)
+
+Cada subpaso termina con `npm test` en verde.
+
+1. **Datos y su prueba.** Escribir primero la prueba 6.3.14 en `tests/datos.test.js` (falla). Añadir `explicacion` y `arquetipos` a `TEXTOS.alerta` en `src/data/arquetipos.js` con los textos exactos de 10.3.D. Comprobación: 6.3.14 en verde.
+2. **Fixtures.** Mover `respuestasAlerta` a `tests/fixtures.js` y añadir `alertaPorEstabilidad`. Comprobación: `resultado.test.js` sigue en verde importándola.
+3. **`resultado.js` y sus pruebas.** Escribir 6.4.10 (modificada) y 6.4.13 a 6.4.19 (fallan). Implementar `ORDEN_SECCIONES_ALERTA`, `parrafosAlerta` y la ampliación de `resultadoAlerta`. Comprobación: todas en verde y 6.4.11 («Al Objetivo») sin cambios.
+4. **Envío.** Añadir 6.5.14 en `tests/envio.test.js`. Debe pasar sin tocar `envio.js` (si falla, el cambio ha roto C4).
+5. **`interfaz.js`.** Extraer `seccionDescarga`, añadir `UI.descargarAlerta`, reescribir `pintarAlerta`.
+6. **`estilos.css`.** Estilos de los bloques nuevos y ampliación de `@media print` (10.4).
+7. **Validación manual y documentación.** Recorrer la comprobación de la alerta y de la descarga de 6.6 (móvil de 360 px y vista previa de impresión). Actualizar `handoff/02-implementacion.md` con: la explicación y los 12 párrafos como PROVISIONAL (para revisión de Elizabeth), la etiqueta `UI.descargarAlerta` y el estado de D6 (sustituida por C1).
+8. **Spec.** Cuando Elizabeth apruebe los textos, pegar 10.3.A a 10.3.F en `docs/especificacion.md` (sin la marca `[PROVISIONAL]`) y quitar el comentario `// PROVISIONAL` de `arquetipos.js`. Este paso no lo hace el implementador por su cuenta.
+
+## 11. Dudas abiertas
+
+Una, no bloqueante. Surge de una contradicción menor entre la spec y la decisión C1.
+
+**Duda 1. Etiqueta del botón de descarga en la pantalla de alerta.** §8 elemento 15 llama al botón «Botón de descarga de la ficha», pero la pantalla de alerta no tiene ficha (no hay «Qué es», «Puede», «Sombra»…); lo que se descarga es el resumen de la alerta. Es una contradicción de nombre, no de comportamiento (el botón es el mismo, C1). Pregunta cerrada: ¿qué texto lleva el botón en la alerta?
+
+- **A)** «Descargar resumen» (adoptada provisionalmente en 10.3.G; distingue las dos pantallas).
+- **B)** «Descargar ficha» (el mismo que el resultado normal, `UI.descargar`; la spec lo llama «ficha» en todas partes).
+
+No bloquea la implementación: se implementa A y cambiar a B es cambiar una constante de `interfaz.js`. Si se elige B, en 10.3.E el punto 5 de la pantalla de alerta se mantiene igual y se elimina `UI.descargarAlerta`.

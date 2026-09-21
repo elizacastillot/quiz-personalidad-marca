@@ -11,9 +11,10 @@ import {
 } from '../data/cuestionario.js';
 import { ARQUETIPOS, TEXTOS } from '../data/arquetipos.js';
 import { calcular } from './puntuacion.js';
-import { componerResultado, ORDEN_SECCIONES } from './resultado.js';
+import { componerResultado, ORDEN_SECCIONES, ORDEN_SECCIONES_ALERTA } from './resultado.js';
 import { construirCarga, enviar } from './envio.js';
 import { barajar, colorTextoSobre } from './utilidades.js';
+import { escena } from './graficos.js';
 
 // ---------------------------------------------------------------------------
 // Textos de interfaz que NO dicta la especificación (provisionales, para revisión).
@@ -53,6 +54,7 @@ const UI = {
   rolDominante: 'Arquetipo dominante',
   rolSecundario: 'Arquetipo secundario',
   descargar: 'Descargar ficha',
+  descargarAlerta: 'Descargar resumen',
   ayudaDescarga: 'Se abrirá el diálogo de impresión. Elige «Guardar como PDF» para descargarla.',
   desgloseTitulo: 'Así se reparten tus respuestas',
   puntoSingular: 'punto',
@@ -157,17 +159,29 @@ function anadir(el, hijos) {
 function montar() {
   const texto = h('span', {}, '');
   const pct = h('span', {}, '');
+  // La barra es el vuelo de una flecha hacia la diana: `--p` (0 a 1) mueve la flecha y el trazo.
   const relleno = h('div', { class: 'progreso-relleno' });
+  const flecha = h('div', { class: 'progreso-flecha' });
   const barra = h(
     'div',
     { class: 'progreso-pista', role: 'progressbar', 'aria-label': UI.progreso, 'aria-valuemin': 0, 'aria-valuemax': 100, 'aria-valuenow': 0 },
-    relleno
+    h('div', { class: 'recorrido' }, relleno, flecha)
   );
   const progreso = h('div', { class: 'progreso' }, h('p', { class: 'progreso-texto' }, texto, pct), barra);
   const contenido = h('main', { id: 'contenido' });
   refs = { texto, pct, relleno, barra, progreso, contenido, error: null };
   document.getElementById('app').replaceChildren(
-    h('header', { class: 'cabecera' }, h('h1', { class: 'marca' }, UI.tituloApp), progreso),
+    h(
+      'header',
+      { class: 'cabecera' },
+      h(
+        'div',
+        { class: 'cabecera-fila' },
+        h('img', { class: 'logo', src: 'img/logo-al-objetivo.svg', alt: UI.marca, width: 187, height: 43 }),
+        h('h1', { class: 'marca' }, UI.tituloApp)
+      ),
+      progreso
+    ),
     contenido
   );
 }
@@ -304,7 +318,7 @@ function campoLibre(bloque) {
 // Vistas del cuestionario
 // ---------------------------------------------------------------------------
 function vistaRetomar(guardado) {
-  const continuar = h('button', { type: 'button', class: 'boton principal' }, UI.continuar);
+  const continuar = h('button', { type: 'button', class: 'boton principal icono-derecha' }, UI.continuar);
   const nuevo = h('button', { type: 'button', class: 'boton secundario' }, UI.empezarDeNuevo);
   continuar.addEventListener('click', () => {
     estado = guardado;
@@ -342,7 +356,7 @@ function vistaModo() {
     }
   });
   return [
-    h('p', {}, UI.bienvenida),
+    h('div', { class: 'hero' }, h('p', {}, UI.bienvenida), escena({ acierto: true })),
     h('h2', { id: idTitulo, tabindex: -1, 'data-foco': true }, PREGUNTA_MODO.enunciado),
     grupo
   ];
@@ -515,7 +529,7 @@ function actualizarProgreso(id) {
   refs.progreso.hidden = false;
   refs.texto.textContent = texto;
   refs.pct.textContent = `${pct} %`;
-  refs.relleno.style.width = `${pct}%`;
+  refs.barra.style.setProperty('--p', String(pct / 100));
   refs.barra.setAttribute('aria-valuenow', String(pct));
   refs.barra.setAttribute('aria-valuetext', `${texto}, ${pct} %`);
 }
@@ -531,10 +545,10 @@ function renderPaso() {
   else contenido = vistaPregunta(PREGUNTA_POR_ID[id]);
 
   const esUltimo = i === PASOS.length - 1;
-  const anterior = h('button', { type: 'button', class: 'boton secundario' }, UI.anterior);
+  const anterior = h('button', { type: 'button', class: 'boton secundario icono-izquierda' }, UI.anterior);
   anterior.hidden = i === 0;
   anterior.addEventListener('click', () => irA(PASOS[i - 1]));
-  const siguiente = h('button', { type: 'submit', class: 'boton principal' }, esUltimo ? UI.verResultado : UI.siguiente);
+  const siguiente = h('button', { type: 'submit', class: 'boton principal icono-derecha' }, esUltimo ? UI.verResultado : UI.siguiente);
   refs.error = h('p', { class: 'error', role: 'alert' });
 
   const formulario = h(
@@ -634,8 +648,22 @@ function tarjetaArquetipo(rol, arq, secundaria) {
   return tarjeta;
 }
 
-function listaResultado(titulo, items) {
-  return h('section', {}, h('h2', { class: 'etiqueta' }, titulo), h('ul', { class: 'lista-resultado' }, items.map((t) => h('li', {}, t))));
+function listaResultado(titulo, items, clase = '') {
+  return h(
+    'section',
+    {},
+    h('h2', { class: 'etiqueta' }, titulo),
+    h('ul', { class: `lista-resultado ${clase}`.trim() }, items.map((t) => h('li', {}, t)))
+  );
+}
+
+// Botón que abre el diálogo de impresión (Guardar como PDF). Lo usan el resultado y la alerta.
+function seccionDescarga(etiqueta) {
+  const boton = h('button', { type: 'button', class: 'boton principal' }, etiqueta);
+  boton.addEventListener('click', () => {
+    if (typeof window.print === 'function') window.print();
+  });
+  return h('section', { class: 'no-imprimir' }, boton, h('p', { class: 'ayuda' }, UI.ayudaDescarga));
 }
 
 function muestraColor(etiqueta, color) {
@@ -676,7 +704,7 @@ function pintarResultado(r) {
           )
         : null,
     puede: () => listaResultado(E.puede, r.puede),
-    noDebe: () => listaResultado(E.noDebe, r.noDebe),
+    noDebe: () => listaResultado(E.noDebe, r.noDebe, 'no'),
     contexto: () =>
       r.contexto
         ? h(
@@ -710,44 +738,54 @@ function pintarResultado(r) {
       ),
     notaFundador: () => (r.notaFundador ? h('section', { class: 'bloque-oscuro a' }, h('p', {}, r.notaFundador)) : null),
     notaCategoria: () => (r.notaCategoria ? h('section', { class: 'bloque-oscuro b' }, h('p', {}, r.notaCategoria)) : null),
-    descarga: () => {
-      const boton = h('button', { type: 'button', class: 'boton principal' }, UI.descargar);
-      boton.addEventListener('click', () => {
-        if (typeof window.print === 'function') window.print();
-      });
-      return h('section', { class: 'no-imprimir' }, boton, h('p', { class: 'ayuda' }, UI.ayudaDescarga));
-    },
+    descarga: () => seccionDescarga(UI.descargar),
     cierre: () => h('p', { class: 'cierre' }, r.cierre)
   };
   const secciones = ORDEN_SECCIONES.map((id) => constructores[id]());
-  pintar(h('div', { class: 'resultado' }, secciones));
+  pintar(h('div', { class: 'resultado' }, h('div', { class: 'escena' }, escena({ acierto: true })), secciones));
 }
 
 function pintarAlerta(r) {
-  const nodos = [
-    h(
-      'section',
-      { class: 'bloque-oscuro b' },
-      h('h2', { tabindex: -1, 'data-foco': true }, r.mensaje.titulo),
-      h('p', {}, r.mensaje.cuerpo),
-      h('p', {}, r.mensaje.pie)
-    ),
-    h('h3', {}, UI.desgloseTitulo),
-    h(
-      'ul',
-      { class: 'desglose' },
-      r.desglose.map((d) =>
+  // Mismo criterio que el resultado normal: un constructor por id, recorridos en el orden de la sección 8.
+  const constructores = {
+    mensaje: () =>
+      h(
+        'section',
+        { class: 'bloque-oscuro b' },
+        h('h2', { tabindex: -1, 'data-foco': true }, r.mensaje.titulo),
+        h('p', {}, r.mensaje.cuerpo),
+        h('p', {}, r.mensaje.pie)
+      ),
+    explicacion: () => h('section', { class: 'explicacion-alerta' }, h('p', {}, r.explicacion)),
+    arquetipos: () =>
+      h(
+        'section',
+        { class: 'arquetipos-alerta' },
+        r.arquetipos.map((a) => h('div', { class: 'parrafo-arquetipo' }, h('p', {}, a.texto)))
+      ),
+    desglose: () =>
+      h(
+        'section',
+        {},
+        h('h2', { class: 'etiqueta' }, UI.desgloseTitulo),
         h(
-          'li',
-          {},
-          h('span', {}, d.nombre),
-          h('span', {}, `${d.discriminante} ${Math.abs(d.discriminante) === 1 ? UI.puntoSingular : UI.puntoPlural}`)
+          'ul',
+          { class: 'desglose' },
+          r.desglose.map((d) =>
+            h(
+              'li',
+              {},
+              h('span', {}, d.nombre),
+              h('span', {}, `${d.discriminante} ${Math.abs(d.discriminante) === 1 ? UI.puntoSingular : UI.puntoPlural}`)
+            )
+          )
         )
-      )
-    ),
-    h('p', { class: 'cierre' }, r.cierre)
-  ];
-  pintar(h('div', { class: 'resultado' }, nodos));
+      ),
+    descarga: () => seccionDescarga(UI.descargarAlerta),
+    cierre: () => h('p', { class: 'cierre' }, r.cierre)
+  };
+  const secciones = ORDEN_SECCIONES_ALERTA.map((id) => constructores[id]());
+  pintar(h('div', { class: 'resultado' }, h('div', { class: 'escena' }, escena({ acierto: false })), secciones));
 }
 
 // ---------------------------------------------------------------------------

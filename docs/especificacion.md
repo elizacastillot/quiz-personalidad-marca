@@ -67,7 +67,7 @@ Primera pregunta del cuestionario:
 - Bloque 3: enunciados sustituidos por sus variantes (5.3b). Opciones y códigos idénticos.
 - Bloque 6: nota de ayuda para quien aún no conoce bien su sector.
 - Bloques 1, 4, 5, 7, 8: sin cambios.
-- Resultado: añade la nota de provisionalidad.
+- Resultado: añade la nota de provisionalidad. No se muestra en la pantalla de alerta (§6).
 
 **Por qué existe este modo.** El cuestionario mide comportamiento, y una marca que no existe no tiene. Pero sí hay comportamiento disponible: el del fundador. El sistema de Pearson nació como marco de desarrollo personal aplicado a individuos antes de aplicarse a marcas, así que preguntar a la persona es volver al origen, no tomar un atajo. Y hay una razón práctica: la personalidad de marca no se rompe en la home, se rompe en el email de soporte, el aviso de renovación y el proceso de baja. En un negocio pequeño todo eso lo escribe el fundador, y un arquetipo que contradiga su temperamento se cae justo ahí.
 
@@ -436,7 +436,18 @@ Sobre `puntuacion_discriminante`, ordenada de mayor a menor (d1, d2, d3). Se mue
 >
 > Es el punto de partida más habitual. Lo resolvemos en la sesión.
 
-Debajo, mostrar igualmente el desglose de los tres.
+[X], [Y] y [Z] son los tres arquetipos con mayor `puntuacion_discriminante`, con el mismo desempate que el resto de posiciones (más marcas «la que MÁS» en el bloque 3; si persiste, orden alfabético del nombre). No tienen por qué coincidir con el dominante, el secundario y el tercero del resultado normal, que se ordenan por `puntuacion_total`.
+
+La pantalla de alerta lleva, en este orden:
+
+1. El mensaje anterior.
+2. Una explicación corta de por qué el resultado no es concluyente (7.7).
+3. Para cada uno de [X], [Y] y [Z], un párrafo breve que explica qué es ese arquetipo y qué quiere (7.7).
+4. El desglose de los tres: nombre y `puntuacion_discriminante` de cada uno.
+5. El botón de descarga (§9).
+6. El cierre (§8, elemento 16).
+
+No lleva la nota de modo fundador (7.4) ni ningún otro elemento del resultado normal (§8). El envío de datos (§10) es el mismo con alerta y sin ella: se guardan y envían dominante, secundario y tercero por `puntuacion_total`, y `alerta_sin_definir = sí`.
 
 > *Umbrales provisionales. Revisar tras los primeros clientes reales.*
 
@@ -526,6 +537,8 @@ Añadir al final de la sección:
 ### 7.4 — Nota de MODO FUNDADOR
 
 > Este resultado retrata cómo trabajas tú, que es de donde nace la personalidad de una marca nueva. Es un punto de partida sólido, pero provisional: cuando lleves seis meses con clientes reales, merece la pena repetirlo.
+
+La nota no se muestra en la pantalla de alerta (§6).
 
 ### 7.5 — Nota de categoría
 
@@ -733,6 +746,31 @@ Si `arquetipo_categoria != dominante` y tampoco coincide con el secundario:
 **Sombra:** la distancia. Tanto criterio y tanto proceso que el cliente deja de sentirse escuchado.
 **Voz:** segura, precisa, con autoridad.
 
+### 7.7 — Textos de la pantalla de alerta
+
+Se muestran solo cuando salta la alerta (§6), en el orden que define §6. Son los mismos en modo marca y en modo fundador.
+
+#### Explicación
+
+> No hay un resultado concluyente porque, en tus respuestas, ningún carácter se separa lo bastante de los demás. Si eligiéramos uno como el principal, estaríamos adivinando. Lo que sí podemos decirte es cuáles son los tres que más pesan, para que veas entre cuáles tienes que decidir.
+
+#### Los tres arquetipos
+
+Un párrafo por cada arquetipo nombrado en la alerta, en el mismo orden que el mensaje y el desglose. Cada párrafo sale de la ficha del arquetipo: el «Qué es» de 7.6 y el «Deseo central» de §3. No añade rasgos nuevos.
+
+- **IN.** El Inocente cree que las cosas no tienen por qué ser complicadas: quita capas, jerga y letra pequeña hasta que el cliente entiende. Lo que quiere es sencillez y seguridad.
+- **SA.** El Sabio no hace por ti: te ayuda a entender el porqué de cada decisión para que decidas con tu propio criterio. Lo que quiere es comprender la verdad.
+- **EX.** El Explorador se mueve antes que los demás: prueba, descarta y comparte el camino mientras lo recorre. Lo que quiere es libertad para descubrir.
+- **HE.** El Héroe cree que el esfuerzo bien dirigido da resultados, y lo organiza todo alrededor de conseguirlos: objetivos, medición, logro. Lo que quiere es demostrar valía con logros.
+- **RE.** El Rebelde señala lo que no funciona, aunque incomode: existe contra una práctica del sector o una creencia que todos aceptan sin discutir. Lo que quiere es cambiar lo que no funciona.
+- **MA.** El Mago cambia la situación de raíz, no la mejora un poco: trabaja sobre la forma en que el cliente ve su propio problema. Lo que quiere es transformar la realidad.
+- **HC.** El Hombre común trata a todo el mundo de igual a igual, sin ponerse por encima ni hacer de gurú: el cliente se reconoce en él. Lo que quiere es pertenecer y conectar.
+- **AM.** El Amante cuida cómo se siente el cliente en cada punto del recorrido, no solo el resultado final: el detalle, la estética y la experiencia. Lo que quiere es conexión e intimidad.
+- **BU.** El Bufón quita hierro: usa el humor para que algo difícil se haga llevadero y para que la gente baje la guardia. Lo que quiere es disfrutar el momento.
+- **CU.** El Cuidador pone por delante que el cliente esté bien atendido, y eso condiciona qué incluye el servicio, cómo responde y cuánto acompaña. Lo que quiere es proteger a los demás.
+- **CR.** El Creador hace cosas que antes no existían y le importa que estén bien hechas: no entrega plantillas, cada trabajo es una pieza. Lo que quiere es crear algo duradero.
+- **GO.** El Gobernante pone orden: tiene método y condiciones claras, y no las negocia. Lo que quiere es liderar y ordenar.
+
 ---
 
 ## 8. Pantalla de resultado: orden
@@ -751,10 +789,23 @@ Si `arquetipo_categoria != dominante` y tampoco coincide con el secundario:
 12. Paleta sugerida — dominante como acento, secundario como complemento, sobre blanco y negro.
 13. Nota de modo fundador, si aplica (7.4).
 14. Nota de categoría (7.5).
-15. Botón de descarga de la ficha.
+15. Botón de descarga de la ficha (§9).
 16. Cierre: «Esto es el punto de partida. Lo afinamos juntas en la sesión.»
 
 Las respuestas abiertas de los bloques 7 y 8 no se muestran. Solo se guardan.
+
+### Pantalla de alerta: orden
+
+Cuando salta la alerta (§6) se muestra esta pantalla en lugar de la anterior:
+
+1. Mensaje «Tu marca todavía no ha elegido un carácter» (§6).
+2. Explicación de por qué el resultado no es concluyente (7.7).
+3. Un párrafo por cada uno de los tres arquetipos nombrados (7.7).
+4. Desglose de los tres: nombre y puntuación discriminante.
+5. Botón de descarga (§9).
+6. Cierre: «Esto es el punto de partida. Lo afinamos juntas en la sesión.»
+
+Sin nota de modo fundador.
 
 ---
 
@@ -765,6 +816,7 @@ Las respuestas abiertas de los bloques 7 y 8 no se muestran. Solo se guardan.
 - **Barra de progreso** con bloque actual, no solo porcentaje.
 - **Envío** por POST a la URL de Google Apps Script con `Content-Type: text/plain;charset=utf-8` para evitar el preflight de CORS. No usar `application/json`. Fire and forget: la pantalla de resultado se muestra sin esperar respuesta, y si falla no rompe nada visible.
 - **Limpiar `localStorage`** solo tras mostrar el resultado, no antes de enviarlo.
+- **Descarga.** El botón de descarga llama a `window.print()`. La hoja de estilos incluye un bloque `@media print` que oculta la barra de progreso, la navegación y el propio botón, conserva los colores de arquetipo y evita cortes de página dentro de una sección. Sin librerías: el usuario guarda como PDF desde el diálogo de impresión. Vale para el resultado y para la pantalla de alerta.
 
 ---
 

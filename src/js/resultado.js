@@ -24,6 +24,9 @@ export const ORDEN_SECCIONES = [
   'cierre'
 ];
 
+// Sección 8 (pantalla de alerta): mismo criterio que ORDEN_SECCIONES. `descarga` es solo un id de posición.
+export const ORDEN_SECCIONES_ALERTA = ['mensaje', 'explicacion', 'arquetipos', 'desglose', 'descarga', 'cierre'];
+
 const CONDICIONES = ['clientes_vulnerables', 'restriccion_normativa', 'consecuencias_graves'];
 
 function minusculaInicial(texto) {
@@ -90,8 +93,18 @@ export function esCategoriaSaturada(dominante, arquetipoCategoria) {
   return Boolean(arquetipoCategoria) && arquetipoCategoria === dominante;
 }
 
+// Sección 7.7: un párrafo por arquetipo, en el orden recibido. Lanza con un código desconocido.
+export function parrafosAlerta(codigos) {
+  return codigos.map((codigo) => {
+    const arq = ARQUETIPOS[codigo];
+    const texto = TEXTOS.alerta.arquetipos[codigo];
+    if (!arq || typeof texto !== 'string') throw new Error(`Arquetipo desconocido: ${codigo}`);
+    return { codigo, nombre: arq.nombre, texto };
+  });
+}
+
 function resultadoAlerta(calculo) {
-  const [a, b, c] = calculo.rankingDiscriminante;
+  const [a, b, c] = calculo.rankingDiscriminante.slice(0, 3);
   const nombre = (codigo) => ARQUETIPOS[codigo].nombre;
   return {
     alerta: true,
@@ -103,6 +116,8 @@ function resultadoAlerta(calculo) {
         .replace('{c}', nombre(c)),
       pie: TEXTOS.alerta.pie
     },
+    explicacion: TEXTOS.alerta.explicacion,
+    arquetipos: parrafosAlerta([a, b, c]),
     desglose: [a, b, c].map((codigo) => ({
       codigo,
       nombre: nombre(codigo),

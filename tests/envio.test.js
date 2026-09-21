@@ -5,8 +5,8 @@ import { CLAVES_HOJA, construirCarga, enviar } from '../src/js/envio.js';
 import { URL_APPS_SCRIPT } from '../src/js/config.js';
 import { calcular } from '../src/js/puntuacion.js';
 import { componerResultado } from '../src/js/resultado.js';
-import { ORDEN_CODIGOS } from '../src/data/arquetipos.js';
-import { alObjetivo, datosAlObjetivo } from './fixtures.js';
+import { ORDEN_CODIGOS, TEXTOS } from '../src/data/arquetipos.js';
+import { alObjetivo, datosAlObjetivo, respuestasAlerta } from './fixtures.js';
 
 const AHORA = new Date('2026-01-15T10:00:00.000Z');
 
@@ -179,4 +179,19 @@ test('URL_APPS_SCRIPT configurada', () => {
     URL_APPS_SCRIPT,
     'https://script.google.com/macros/s/AKfycbz6j99B4irmmeFJbqub6H2LAr7vYh7rUxJ17Ljzq593Oj4_ZgXmOvE04YJSZfOAdCWylw/exec'
   );
+});
+
+test('La carga no cambia con la alerta: mismas 23 claves y sin textos de la pantalla', () => {
+  for (const modo of ['marca', 'fundador']) {
+    const carga = cargaDe(respuestasAlerta, { ...datosAlObjetivo, modo });
+    assert.deepEqual(Object.keys(carga), CLAVES_HOJA);
+    assert.equal(carga.alerta_sin_definir, 'sí');
+    assert.equal(carga.arquetipo_dominante, 'HE');
+    assert.equal(carga.arquetipo_secundario, 'MA');
+    assert.equal(carga.arquetipo_tercero, 'RE');
+    const textos = [TEXTOS.alerta.explicacion, ...Object.values(TEXTOS.alerta.arquetipos)];
+    for (const valor of Object.values(carga)) {
+      for (const t of textos) assert.ok(!String(valor).includes(t));
+    }
+  }
 });

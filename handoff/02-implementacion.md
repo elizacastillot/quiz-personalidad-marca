@@ -146,3 +146,91 @@ Comprobación:
 - Node 20: no está disponible en esta máquina (no hay nvm ni otra instalación), así que no se ha comprobado. El descubrimiento por defecto de `*.test.js` existe en Node 18, 20 y 24, y el workflow lo ejecutará con Node 20 en el primer push.
 
 Pendiente menor: el comentario de `tests/fixtures.js` línea 2 sigue diciendo «node --test tests/». Es solo un comentario y `tests/` quedaba fuera del alcance de esta ronda; se puede actualizar en otra.
+
+## Cambio 1: alerta y rediseño
+
+### C1.1 Resultado
+
+- `npm test` (`node --test`): **69 pruebas, 69 correctas, 0 fallos** (antes 60; nueve nuevas).
+- Recorrido con servidor estático local (`python -m http.server`) y Edge headless por CDP a 360 px (y una pasada a 1100 px): bienvenida, datos, P1, bloque 2, bloque 3, escala del bloque 6, resultado de «Al Objetivo» (Mago 62 % / Hombre común 38 %) y alerta en modo fundador. Sin desbordamiento horizontal en ninguna, sin errores de consola y **ninguna petición a recursos externos**. Objetivos táctiles del bloque 3 de al menos 44 px. Envío de la alerta: `POST`, `text/plain;charset=utf-8`, 23 claves.
+
+### C1.2 Pantalla de alerta (spec §6, §7.7, §8, §9)
+
+Orden comprobado en el DOM: mensaje, explicación, un párrafo por cada uno de los tres arquetipos, desglose, botón «Descargar resumen» (`window.print()`) y cierre. Sin nota de fundador, ni siquiera en modo fundador. Los tres nombrados salen de `rankingDiscriminante`.
+
+- `src/data/arquetipos.js`: `TEXTOS.alerta.explicacion` y `TEXTOS.alerta.arquetipos` (12 textos copiados literalmente de §7.7 de `docs/especificacion.md`, que ya los recoge). El comentario `// PROVISIONAL` sigue puesto; quitarlo cuando Elizabeth apruebe.
+- `src/js/resultado.js`: exporta `ORDEN_SECCIONES_ALERTA` y `parrafosAlerta`; `resultadoAlerta` devuelve ahora seis claves. `componerResultado` no lee el modo en la alerta.
+- `src/js/interfaz.js`: `pintarAlerta` es un mapa de constructores por id recorrido con `ORDEN_SECCIONES_ALERTA`; `seccionDescarga(etiqueta)` compartida por el resultado y la alerta.
+- Pruebas nuevas: datos 6.3.14; resultado 6.4.10 (modificada) y 6.4.13 a 6.4.19; envío 6.5.14. `respuestasAlerta` y `alertaPorEstabilidad` pasan a `tests/fixtures.js`.
+- `puntuacion.js`, `envio.js` y `config.js` no se han tocado.
+
+### C1.3 Rediseño (arquería)
+
+Concepto: un arco, una flecha y la diana, con solo la paleta de Al Objetivo (`#FFFFFF`, `#000000`, `#D8851F`, `#3D391F`, `#1A2B32`). Ningún color de arquetipo se usa en la interfaz.
+
+- **Cabecera:** logo (`src/img/logo-al-objetivo.svg`, copia del original con nombre sin espacios; el original no se ha modificado; proporción 187:43 comprobada) sobre fondo blanco, título en versalitas y filete naranja. El logo no se ve sobre fondos oscuros (el texto es gris casi negro), por eso la cabecera es blanca.
+- **Barra de progreso:** es el vuelo de una flecha (SVG) que recorre una línea punteada hasta una diana. `--p` (0 a 1) mueve la flecha y el trazo naranja. Conserva `role="progressbar"`, el nombre del bloque y el porcentaje.
+- **Bienvenida:** tarjeta oscura con el texto de bienvenida y una escena SVG (arco, flecha que da en el centro de la diana). Es la misma pantalla del modo; no existe una pantalla de bienvenida aparte.
+- **Opciones:** cada radio es una pequeña diana; la seleccionada pasa a fondo `#1A2B32` con el centro naranja. Bloque 3: «Más me describe» en naranja y «Menos me describe» en `#1A2B32`, con una marca de verificación además del color.
+- **Resultado:** banda con la escena (flecha en el centro), tarjetas de arquetipo con anillos de diana tenues al fondo (con el color del texto, sin restar contraste), títulos con icono de diana, listas con puntas de flecha (puede) y cruces (no debe), cierre con línea de puntos hasta una diana.
+- **Alerta:** misma banda, con la flecha clavada en un anillo, no en el centro. Cada párrafo de arquetipo va en una tarjeta con una diana; el desglose, con una diana por línea. Solo colores de interfaz.
+- **Botones:** naranja con texto negro y flecha; «Anterior» con flecha a la izquierda. Foco visible con doble contorno negro y naranja, también en las opciones (`:has(input:focus-visible)`).
+- **Impresión:** la cabecera se conserva con el logo y el título; se ocultan progreso, navegación, botones y la banda decorativa; se conservan los colores de arquetipo; `break-inside: avoid` en secciones, párrafos y líneas del desglose.
+- Nuevos gráficos: `src/js/graficos.js` (escena) y `src/img/`: `diana.svg`, `flecha.svg`, `flecha-corta.svg`, `flecha-derecha.svg`, `flecha-izquierda.svg`, `check.svg`, `punta.svg`, `cruz.svg`, `favicon.svg`. `src/index.html` gana el favicon y `theme-color`.
+
+### C1.4 Decisiones y cosas a saber
+
+1. **Fuentes:** la restricción de no usar recursos externos prevalece sobre la skill. He **quitado el enlace a Google Fonts** de `index.html`. `estilos.css` conserva «Kanit» y «Nunito Sans» al principio de la pila, pero solo se usan si están instaladas en el equipo; si no, se ve `system-ui` / Segoe UI. Para tener la tipografía provisional de marca en todos los equipos habría que alojar los archivos de fuente en `src/` (decisión pendiente). Queda anulado lo que decía la sección 6 anterior sobre Google Fonts.
+2. `src/img/Logo Al Objetivo 187x43px.svg` (155 KB, con espacios en el nombre) sigue en `src/` y se publicará con la web aunque no se use; conviene sacarlo de `src/` o borrarlo. No lo he tocado. El logo pesa 155 KB (lleva un PNG incrustado); se carga una vez y se cachea.
+3. La barra de progreso ya no usa `style.width`; usa la variable CSS `--p`.
+4. Los botones de opción cambian de color con transición de 0,15 s (se anula con `prefers-reduced-motion`).
+5. Sin cambios en `docs/`, `package.json` ni `.github/`.
+
+### C1.5 Textos de interfaz nuevos (no dictados por la spec)
+
+- `UI.descargarAlerta`: «Descargar resumen» (propuesto por el plan 10.3.G).
+- `alt` del logo: «Al Objetivo» (`UI.marca`, ya existía).
+- Ningún otro texto visible nuevo. Se reutilizan «Así se reparten tus respuestas» (ahora como `h2`, antes `h3`) y la ayuda de descarga.
+
+### C1.6 No comprobado
+
+- **Vista previa real de impresión y guardado como PDF.** Solo se ha emulado `media: print` (logo visible, progreso y botón ocultos, color del Mago intacto) y capturado la pantalla; no se ha visto la paginación real ni cómo se corta. Falta comprobar que el logo (SVG con PNG incrustado) y los fondos de las tarjetas salen en el PDF de Chrome/Edge.
+- Navegadores distintos de Edge (Safari, Firefox) y móviles reales. Se usan `:has()`, `mask` y `appearance: none`; hay respaldo para `:has()`, pero no se ha probado.
+- Contraste medido solo a ojo y por construcción: texto negro sobre naranja, blanco sobre `#1A2B32` y `#3D391F`. Texto sobre el color de arquetipo sigue calculado por `colorTextoSobre`.
+- Modo fundador con Héroe y condiciones activas en el rediseño (no recorrido en esta ronda; los estilos son los mismos de `.bloque-oscuro`).
+- La captura del bloque 6 y de la escala sirve de referencia visual; los recorridos completos por pantalla del resto de bloques (P4 a P7, abiertas) no se han fotografiado uno a uno.
+
+## Cambio 2: tipografía
+
+Decisión de Elizabeth: Kanit es la única tipografía de marca. Nunito Sans desaparece. La skill `marca-al-objetivo` sigue nombrándola (está desactualizada en este punto y no se ha tocado).
+
+### C2.1 Qué se ha hecho
+
+- **Fuentes alojadas** en `src/fonts/`: `kanit-latin-400-normal.woff2`, `-500-`, `-600-` y `-700-` (unos 19 KB cada una, 77 KB en total). Solo los pesos que usa `estilos.css` (400 cuerpo, 500 botones y porcentajes, 600 titulares, 700 etiquetas y negritas).
+- **Origen:** distribución `@fontsource/kanit` v5.3.0 (licencia OFL-1.1), descargada ahora con `curl` desde `cdn.jsdelivr.net/npm/@fontsource/kanit/files/`. Es el subconjunto latino de Google Fonts.
+- **Licencia:** `src/fonts/OFL.txt`, texto SIL Open Font License 1.1 con el copyright «2020 The Kanit Project Authors», tomado de `google/fonts` (`ofl/kanit/OFL.txt`).
+- **`src/css/estilos.css`:** cuatro `@font-face` de «Kanit» (`font-display: swap`, solo `format("woff2")`, rutas `../fonts/...`). `--fuente-titulos` es `"Kanit", system-ui, -apple-system, "Segoe UI", sans-serif` y `--fuente-texto` apunta a la misma variable; por tanto titulares y cuerpo usan Kanit. Se actualizó el comentario de cabecera. No se ha tocado ningún tamaño, peso, color ni regla de maquetación.
+- **Nunito Sans:** `grep -i nunito` en `src/` y `tests/` no devuelve nada. Las menciones que quedan están en `handoff/01`, `02`, `03` y `04` (histórico y aviso de despliegue: la línea de `04-despliegue.md` que pide comprobar «Kanit y Nunito Sans» está obsoleta) y en `.claude/skills/marca-al-objetivo/SKILL.md`, que no he modificado.
+- **Logo:** `src/img/Logo Al Objetivo 187x43px.svg` movido a `docs/Logo Al Objetivo 187x43px.svg` sin modificarlo (era idéntico byte a byte a `src/img/logo-al-objetivo.svg`, que es el que usa la web; se comprobó con `cmp`). Ningún archivo de `src/` ni `tests/` lo referencia. Con esto queda resuelto el punto C1.4.2. `src/index.html` no necesitó cambios.
+
+### C2.2 Comprobaciones
+
+- `npm test`: **69 pruebas, 69 correctas, 0 fallos**.
+- Servidor estático (`python -m http.server` sobre `src/`) y Edge headless por CDP a 360 x 800 (móvil), caché desactivada. Recorrido automático desde el primer paso hasta la pantalla final (9 capturas del recorrido, más la de retomar), con `fetch` sustituido por un stub:
+  - Las cuatro fuentes se piden a `http://127.0.0.1:.../fonts/kanit-latin-{400,500,600,700}-normal.woff2`, con estado `loaded` en `document.fonts`. Cero peticiones a otros dominios y cero peticiones fallidas (22 en total, todas locales).
+  - `font-family` calculada en cabecera y cuerpo: `Kanit, system-ui, ...`.
+  - Cobertura de glifos por medición de anchos (Kanit frente a `serif` y `monospace`) en los cuatro pesos: `á é í ó ú ü ñ Á É Í Ó Ú Ü Ñ ¿ ¡ « » €` y `, . ; : ( ) %` presentes en todos.
+  - Sin desbordamiento horizontal: `scrollWidth` = 360 = `clientWidth` en todas las pantallas recorridas. Revisadas a ojo las capturas de retomar, bloque 3 (botones «Más/Menos me describe» sin cortes de texto) y alerta: la maquetación no se rompe. El texto ocupa algo más que antes porque Kanit es más ancha que la fuente del sistema, que era lo que se veía realmente en equipos sin Kanit; los saltos de línea cambian, pero nada se sale de su caja.
+
+### C2.3 Incidencia a tener en cuenta
+
+En una primera pasada de comprobación olvidé interceptar `fetch` y el recorrido automático **envió dos filas de prueba a la hoja de Google real** (`URL_APPS_SCRIPT`, nombre «Prueba», email `a@b.es`, respuestas automáticas). No he podido borrarlas. Hay que eliminar a mano esas dos filas (las más recientes con nombre «Prueba» y `a@b.es`, fecha de hoy) de la hoja. Las pasadas siguientes ya usaron stub y no enviaron nada.
+
+### C2.4 No comprobado
+
+- Firefox, Safari y móviles reales; no se ha visto Kanit renderizada en ellos (solo Edge/Chromium headless).
+- Impresión y «Guardar como PDF» con Kanit (con `@media print` la fuente es la misma, pero no se ha visto la paginación real).
+- La pantalla de resultado normal (Mago) y el modo fundador con Héroe no se recorrieron en esta ronda; la pasada automática terminó en la alerta. Los estilos no han cambiado, solo la fuente.
+- Comprobación de cobertura de glifos indirecta (por anchos); no se ha leído la tabla `cmap` del woff2.
+- Kanit tiene un interlineado propio alto; se mantiene `line-height` de la hoja sin ajustes y visualmente es legible.
+- El validador debe mirar: contraste y legibilidad del peso 400 en cuerpo a 17 px en un móvil real.

@@ -1,5 +1,38 @@
 /* Paleta de la interfaz (Al Objetivo): #FFFFFF #000000 #D8851F #3D391F #1A2B32.
-   Los colores de los arquetipos NO se definen aquí: se inyectan desde los datos en el resultado. */
+   Los colores de los arquetipos NO se definen aquí: se inyectan desde los datos en el resultado.
+   Concepto visual: la arquería. Un arco, una flecha y la diana; la barra de progreso es el vuelo de la flecha.
+   Los gráficos son SVG propios (src/img y src/js/graficos.js). Sin recursos externos.
+   Tipografía: Kanit, la única de la marca, alojada en src/fonts (licencia SIL OFL 1.1 en src/fonts/OFL.txt).
+   Subconjunto latino de Kanit (incluye á é í ó ú ü ñ ¿ ¡ « » €) y solo los pesos que usa esta hoja: 400, 500, 600 y 700. */
+
+@font-face {
+  font-family: "Kanit";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("../fonts/kanit-latin-400-normal.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Kanit";
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url("../fonts/kanit-latin-500-normal.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Kanit";
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("../fonts/kanit-latin-600-normal.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Kanit";
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("../fonts/kanit-latin-700-normal.woff2") format("woff2");
+}
 
 :root {
   --fondo: #FFFFFF;
@@ -7,8 +40,11 @@
   --enfasis: #D8851F;
   --seccion-a: #3D391F;
   --seccion-b: #1A2B32;
+  --radio: 6px;
+  --ancho: 44rem;
+  /* Kanit para titulares y texto; si no llega, una sans-serif del sistema. */
   --fuente-titulos: "Kanit", system-ui, -apple-system, "Segoe UI", sans-serif;
-  --fuente-texto: "Nunito Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --fuente-texto: var(--fuente-titulos);
 }
 
 *, *::before, *::after { box-sizing: border-box; }
@@ -22,24 +58,25 @@ body {
   color: var(--texto);
   font-family: var(--fuente-texto);
   font-size: 1.0625rem;
-  line-height: 1.5;
+  line-height: 1.55;
 }
 
 h1, h2, h3 {
   font-family: var(--fuente-titulos);
-  font-weight: 500;
+  font-weight: 600;
   line-height: 1.25;
+  letter-spacing: -0.005em;
   margin: 0 0 0.75rem;
 }
 h1 { font-size: 1.5rem; }
-h2 { font-size: 1.375rem; }
+h2 { font-size: 1.5rem; }
 h3 { font-size: 1.125rem; }
 p { margin: 0 0 0.75rem; }
 
 :focus-visible {
   outline: 3px solid var(--texto);
   outline-offset: 2px;
-  box-shadow: 0 0 0 6px var(--enfasis);
+  box-shadow: 0 0 0 6px var(--enfasis) !important;
 }
 [tabindex="-1"]:focus { outline: none; box-shadow: none; }
 
@@ -55,104 +92,217 @@ p { margin: 0 0 0.75rem; }
 
 .aviso-js { padding: 1rem; }
 
-/* ---------- Cabecera y progreso ---------- */
+/* Iconos monocromos: la forma viene del SVG y el color, del texto que los rodea. */
+.icono-derecha::after,
+.icono-izquierda::before,
+.boton-mm[aria-pressed="true"]::before {
+  content: "";
+  flex: 0 0 auto;
+  background-color: currentColor;
+  -webkit-mask: var(--icono) center / contain no-repeat;
+  mask: var(--icono) center / contain no-repeat;
+}
+
+/* ---------- Cabecera y progreso (la flecha en vuelo hacia la diana) ---------- */
 .cabecera {
-  background: var(--seccion-b);
-  color: #FFFFFF;
+  background: var(--fondo);
+  border-bottom: 3px solid var(--enfasis);
   padding: 0.75rem 1rem 0.5rem;
 }
-.cabecera .marca {
-  font-family: var(--fuente-titulos);
-  font-weight: 600;
-  font-size: 1rem;
-  margin: 0;
+.cabecera-fila {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  max-width: var(--ancho);
+  margin: 0 auto;
 }
-.progreso { margin-top: 0.5rem; }
+.logo { display: block; height: 30px; width: auto; flex: 0 0 auto; }
+.cabecera .marca {
+  margin: 0;
+  max-width: 11rem;
+  color: var(--seccion-b);
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1.3;
+  letter-spacing: 0.07em;
+  text-align: right;
+  text-transform: uppercase;
+}
+
+.progreso { max-width: var(--ancho); margin: 0.5rem auto 0; }
+.progreso[hidden] { display: none; }
 .progreso-texto {
   display: flex;
   justify-content: space-between;
-  gap: 0.5rem;
-  font-size: 0.9375rem;
-  margin: 0 0 0.375rem;
+  gap: 0.75rem;
+  margin: 0;
+  color: var(--seccion-b);
+  font-size: 0.875rem;
+  font-weight: 700;
+  line-height: 1.3;
 }
-.progreso-pista {
-  height: 10px;
-  background: var(--seccion-a);
-  border-radius: 5px;
-  overflow: hidden;
+.progreso-texto span:last-child { flex: 0 0 auto; }
+.progreso-pista { --p: 0; display: flex; align-items: center; height: 34px; }
+.progreso-pista::after {
+  content: "";
+  flex: 0 0 32px;
+  width: 32px;
+  height: 32px;
+  background: url("../img/diana.svg") center / contain no-repeat;
+}
+.recorrido { position: relative; flex: 1; height: 34px; }
+.recorrido::before {
+  content: "";
+  position: absolute;
+  left: 0; right: 0; top: 50%;
+  border-top: 2px dotted var(--seccion-b);
+  opacity: 0.55;
 }
 .progreso-relleno {
-  height: 100%;
+  position: absolute;
+  left: 0; top: 50%;
+  height: 3px;
+  margin-top: -1.5px;
+  width: calc(var(--p) * (100% - 28px) + 22px);
   background: var(--enfasis);
-  width: 0;
-  transition: width 0.2s ease;
+  transition: width 0.45s ease;
+}
+.progreso-flecha {
+  position: absolute;
+  top: 50%;
+  left: calc(var(--p) * (100% - 28px));
+  width: 44px;
+  height: 14px;
+  margin-top: -7px;
+  background: url("../img/flecha.svg") center / contain no-repeat;
+  transition: left 0.45s ease;
 }
 
 /* ---------- Contenido ---------- */
 main {
-  max-width: 44rem;
+  max-width: var(--ancho);
   margin: 0 auto;
-  padding: 1.25rem 1rem 3rem;
+  padding: 1.5rem 1rem 3.5rem;
 }
 
 .pantalla > h2:focus { outline: none; }
 
-.ayuda { color: var(--texto); font-size: 0.9375rem; margin-bottom: 1rem; }
+/* Adorno de titulares: una flecha corta. */
+.pantalla > h2::before,
+.encabezado-bloque h2::before {
+  content: "";
+  display: block;
+  width: 48px;
+  height: 12px;
+  margin-bottom: 0.625rem;
+  background: url("../img/flecha-corta.svg") left center / contain no-repeat;
+}
+
+.ayuda { font-size: 0.9375rem; margin-bottom: 1rem; }
+
+/* Bienvenida: arco, flecha y diana sobre fondo oscuro. */
+.hero {
+  background: var(--seccion-b);
+  color: #FFFFFF;
+  border-radius: var(--radio);
+  padding: 1.25rem 1.25rem 0.75rem;
+  margin-bottom: 1.75rem;
+  overflow: hidden;
+}
+.hero p { font-size: 1.125rem; line-height: 1.5; margin: 0 0 0.75rem; }
+.escena-svg { display: block; width: 100%; height: auto; }
+.hero .escena-svg { margin-top: 0.25rem; }
 
 .encabezado-bloque {
   background: var(--seccion-b);
   color: #FFFFFF;
-  border-radius: 8px;
-  padding: 1rem;
+  border-radius: var(--radio);
+  border-left: 6px solid var(--enfasis);
+  padding: 1rem 1.125rem;
   margin-bottom: 1rem;
 }
 .encabezado-bloque p:last-child { margin-bottom: 0; }
 
-/* Opciones de elección única */
+/* Opciones de elección única: cada radio es una pequeña diana. */
 .grupo { display: grid; gap: 0.625rem; margin: 1rem 0; }
 
 .opcion {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  min-height: 48px;
+  gap: 0.875rem;
+  min-height: 52px;
   padding: 0.625rem 0.875rem;
-  border: 2px solid var(--texto);
-  border-radius: 8px;
+  border: 2px solid var(--seccion-b);
+  border-radius: var(--radio);
   cursor: pointer;
   background: var(--fondo);
+  transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease;
 }
-.opcion input {
+.opcion:hover { border-color: var(--enfasis); }
+.opcion input[type="radio"] {
+  -webkit-appearance: none;
+  appearance: none;
   flex: 0 0 auto;
-  width: 24px; height: 24px;
+  width: 26px;
+  height: 26px;
   margin: 0;
-  accent-color: var(--seccion-b);
+  border: 2px solid var(--seccion-b);
+  border-radius: 50%;
+  background: radial-gradient(circle, var(--fondo) 0 30%, var(--seccion-b) 31% 40%, var(--fondo) 41%);
+  cursor: pointer;
+}
+.opcion input[type="radio"]:checked {
+  border-color: #FFFFFF;
+  background: radial-gradient(circle, var(--enfasis) 0 32%, var(--seccion-b) 33% 46%, #FFFFFF 47% 66%, var(--seccion-b) 67%);
 }
 .opcion.seleccionada {
-  border-color: var(--enfasis);
-  box-shadow: inset 0 0 0 2px var(--enfasis);
+  background: var(--seccion-b);
+  border-color: var(--seccion-b);
+  box-shadow: inset 6px 0 0 var(--enfasis);
+  color: #FFFFFF;
   font-weight: 600;
+}
+.opcion:has(input:focus-visible) {
+  outline: 3px solid var(--texto);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 6px var(--enfasis);
+}
+.opcion:has(input:focus-visible) input { outline: none; box-shadow: none !important; }
+@supports not selector(:has(*)) {
+  .opcion input:focus-visible { outline: 3px solid var(--texto); outline-offset: 2px; }
 }
 
 /* Doble selección del bloque 3 */
 .opcion-mm {
-  border: 2px solid var(--texto);
-  border-radius: 8px;
-  padding: 0.75rem;
+  border: 2px solid var(--seccion-b);
+  border-radius: var(--radio);
+  padding: 0.875rem;
   background: var(--fondo);
 }
-.opcion-mm p { margin: 0 0 0.625rem; }
+.opcion-mm p { margin: 0 0 0.75rem; }
 .botones-mm { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; }
 .boton-mm {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.375rem;
   min-height: 48px;
-  padding: 0.5rem 0.5rem;
-  border: 2px solid var(--texto);
-  border-radius: 8px;
+  padding: 0.5rem;
+  border: 2px solid var(--seccion-b);
+  border-radius: var(--radio);
   background: var(--fondo);
   color: var(--texto);
   font: inherit;
   font-weight: 600;
+  line-height: 1.2;
   cursor: pointer;
+}
+.boton-mm:hover { border-color: var(--enfasis); }
+.boton-mm[aria-pressed="true"]::before {
+  --icono: url("../img/check.svg");
+  width: 18px;
+  height: 18px;
 }
 .boton-mm[aria-pressed="true"].mas {
   background: var(--enfasis);
@@ -178,13 +328,14 @@ main {
 .escala .opcion {
   flex-direction: column;
   justify-content: center;
-  gap: 0.25rem;
-  padding: 0.5rem 0.25rem;
+  gap: 0.375rem;
+  padding: 0.625rem 0.25rem;
   text-align: center;
 }
+.escala .opcion.seleccionada { box-shadow: inset 0 -6px 0 var(--enfasis); }
 
 /* Campos de texto */
-.campo { margin-bottom: 1rem; }
+.campo { margin-bottom: 1.125rem; }
 .campo label, .etiqueta-campo {
   display: block;
   font-weight: 700;
@@ -194,8 +345,8 @@ input[type="text"], input[type="email"], select, textarea {
   width: 100%;
   min-height: 48px;
   padding: 0.625rem 0.75rem;
-  border: 2px solid var(--texto);
-  border-radius: 8px;
+  border: 2px solid var(--seccion-b);
+  border-radius: var(--radio);
   background: var(--fondo);
   color: var(--texto);
   font: inherit;
@@ -203,7 +354,11 @@ input[type="text"], input[type="email"], select, textarea {
 textarea { min-height: 8rem; resize: vertical; }
 [aria-invalid="true"] { border-color: var(--seccion-b); border-width: 4px; }
 .error-campo { color: var(--texto); font-weight: 700; margin: 0.375rem 0 0; }
-.campo-libre { margin-top: 1.5rem; padding-top: 1rem; border-top: 2px solid var(--seccion-b); }
+.campo-libre {
+  margin-top: 1.5rem;
+  padding-top: 1rem;
+  border-top: 2px dotted var(--seccion-b);
+}
 
 /* Mensaje de error de la pantalla */
 .error {
@@ -219,13 +374,17 @@ textarea { min-height: 8rem; resize: vertical; }
   border-radius: 4px;
 }
 
-/* Botones de navegación */
+/* Botones */
 .navegacion { display: flex; gap: 0.75rem; margin-top: 1.5rem; }
 .boton {
-  min-height: 48px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  min-height: 52px;
   padding: 0.625rem 1.25rem;
-  border: 2px solid var(--texto);
-  border-radius: 8px;
+  border: 2px solid var(--seccion-b);
+  border-radius: var(--radio);
   font-family: var(--fuente-titulos);
   font-size: 1.0625rem;
   font-weight: 500;
@@ -233,48 +392,105 @@ textarea { min-height: 8rem; resize: vertical; }
   background: var(--fondo);
   color: var(--texto);
 }
-.boton.principal { background: var(--enfasis); color: var(--texto); flex: 1; }
-.boton.secundario { background: var(--fondo); }
+.boton.principal {
+  flex: 1;
+  background: var(--enfasis);
+  border-color: var(--enfasis);
+  color: var(--texto);
+  box-shadow: 0 3px 0 var(--seccion-b);
+}
+.boton.principal:hover { box-shadow: 0 1px 0 var(--seccion-b); transform: translateY(2px); }
+.boton.secundario:hover { border-color: var(--enfasis); }
 .boton[hidden] { display: none; }
+.icono-derecha::after { --icono: url("../img/flecha-derecha.svg"); width: 22px; height: 22px; }
+.icono-izquierda::before { --icono: url("../img/flecha-izquierda.svg"); width: 22px; height: 22px; }
 
 /* Retomar */
 .retomar { display: grid; gap: 0.75rem; margin-top: 1rem; }
 .retomar .boton { width: 100%; }
 
-/* ---------- Resultado ---------- */
-.resultado > section { margin-bottom: 1.5rem; }
-.resultado h2.etiqueta { font-size: 1.125rem; }
+/* ---------- Resultado y alerta ---------- */
+.resultado > section,
+.resultado > .escena { margin-bottom: 1.75rem; }
+.resultado h2.etiqueta {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  font-size: 1.1875rem;
+}
+.resultado h2.etiqueta::before {
+  content: "";
+  flex: 0 0 auto;
+  width: 24px;
+  height: 24px;
+  background: url("../img/diana.svg") center / contain no-repeat;
+}
+
+.escena {
+  background: var(--seccion-b);
+  border-radius: var(--radio);
+  padding: 0.75rem;
+}
+.escena .escena-svg { max-width: 26rem; margin: 0 auto; }
 
 .tarjeta-arquetipo {
-  border: 2px solid var(--texto);
-  border-radius: 8px;
-  padding: 1rem;
+  position: relative;
+  overflow: hidden;
+  border: 2px solid var(--seccion-b);
+  border-radius: var(--radio);
+  padding: 1.25rem;
 }
-.tarjeta-arquetipo .rol { font-size: 0.9375rem; font-weight: 700; margin: 0 0 0.25rem; }
+/* Anillos de diana al fondo de la tarjeta, con el color del texto para no romper el contraste. */
+.tarjeta-arquetipo::before {
+  content: "";
+  position: absolute;
+  right: -52px;
+  top: 50%;
+  width: 200px;
+  height: 200px;
+  margin-top: -100px;
+  border-radius: 50%;
+  background: repeating-radial-gradient(circle, transparent 0 13px, currentColor 13px 15px);
+  opacity: 0.16;
+  pointer-events: none;
+}
+.tarjeta-arquetipo > * { position: relative; }
+.tarjeta-arquetipo .rol {
+  font-size: 0.875rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  margin: 0 0 0.25rem;
+}
 .tarjeta-arquetipo .nombre {
   font-family: var(--fuente-titulos);
-  font-size: 1.75rem;
+  font-size: 2rem;
   font-weight: 600;
   line-height: 1.15;
   margin: 0;
 }
 .tarjeta-arquetipo .porcentaje {
   font-family: var(--fuente-titulos);
-  font-size: 1.25rem;
-  margin: 0.25rem 0 0;
+  font-size: 1.5rem;
+  font-weight: 500;
+  margin: 0.375rem 0 0;
 }
-.tarjeta-arquetipo.secundaria .nombre { font-size: 1.375rem; }
+.tarjeta-arquetipo.secundaria .nombre { font-size: 1.5rem; }
+.tarjeta-arquetipo.secundaria .porcentaje { font-size: 1.25rem; }
 
 .frase {
   font-family: var(--fuente-titulos);
   font-size: 1.375rem;
-  line-height: 1.3;
+  line-height: 1.35;
+  padding-left: 1rem;
+  border-left: 5px solid var(--enfasis);
 }
 
 .bloque-oscuro {
   color: #FFFFFF;
-  border-radius: 8px;
-  padding: 1rem;
+  border-radius: var(--radio);
+  border-left: 6px solid var(--enfasis);
+  padding: 1.125rem 1.125rem 1.125rem 1.25rem;
 }
 .bloque-oscuro.a { background: var(--seccion-a); }
 .bloque-oscuro.b { background: var(--seccion-b); }
@@ -289,12 +505,29 @@ textarea { min-height: 8rem; resize: vertical; }
 }
 .aviso-heroe strong { font-weight: 700; }
 
-.lista-resultado { margin: 0; padding-left: 1.25rem; }
-.lista-resultado li { margin-bottom: 0.375rem; }
+/* Listas: puntas de flecha (qué puede hacer) y cruces (qué no debe). */
+.lista-resultado { margin: 0; padding: 0; list-style: none; }
+.lista-resultado li { position: relative; padding-left: 1.75rem; margin-bottom: 0.5rem; }
+.lista-resultado li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0.4rem;
+  width: 14px;
+  height: 14px;
+  background-color: var(--enfasis);
+  -webkit-mask: url("../img/punta.svg") center / contain no-repeat;
+  mask: url("../img/punta.svg") center / contain no-repeat;
+}
+.lista-resultado.no li::before {
+  background-color: var(--seccion-b);
+  -webkit-mask-image: url("../img/cruz.svg");
+  mask-image: url("../img/cruz.svg");
+}
 
 .voz { display: flex; flex-wrap: wrap; gap: 0.5rem; padding: 0; margin: 0; list-style: none; }
 .voz li {
-  border: 2px solid var(--texto);
+  border: 2px solid var(--seccion-b);
   border-radius: 999px;
   padding: 0.25rem 0.875rem;
   font-weight: 600;
@@ -302,8 +535,8 @@ textarea { min-height: 8rem; resize: vertical; }
 
 .paleta { display: grid; grid-template-columns: 1fr 1fr; gap: 0.625rem; }
 .muestra {
-  border: 2px solid var(--texto);
-  border-radius: 8px;
+  border: 2px solid var(--seccion-b);
+  border-radius: var(--radio);
   padding: 0.75rem;
   min-height: 5rem;
   display: flex;
@@ -313,36 +546,108 @@ textarea { min-height: 8rem; resize: vertical; }
 }
 .muestra small { font-weight: 400; font-size: 0.875rem; }
 
-.desglose { list-style: none; padding: 0; margin: 1rem 0; display: grid; gap: 0.5rem; }
+/* Pantalla de alerta */
+.explicacion-alerta p {
+  margin: 0;
+  padding-left: 1rem;
+  border-left: 5px solid var(--seccion-b);
+  font-size: 1.125rem;
+}
+.arquetipos-alerta { display: grid; gap: 0.75rem; }
+.parrafo-arquetipo {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.875rem;
+  padding: 1rem;
+  border: 2px solid var(--seccion-b);
+  border-radius: var(--radio);
+}
+.parrafo-arquetipo::before {
+  content: "";
+  flex: 0 0 auto;
+  width: 30px;
+  height: 30px;
+  margin-top: 0.05rem;
+  background: url("../img/diana.svg") center / contain no-repeat;
+}
+.parrafo-arquetipo p { margin: 0; }
+
+.desglose { list-style: none; padding: 0; margin: 0.75rem 0 0; display: grid; gap: 0.5rem; }
 .desglose li {
   display: flex;
-  justify-content: space-between;
-  gap: 1rem;
-  border: 2px solid var(--texto);
-  border-radius: 8px;
+  align-items: center;
+  gap: 0.75rem;
+  border: 2px solid var(--seccion-b);
+  border-radius: var(--radio);
   padding: 0.625rem 0.875rem;
   font-weight: 600;
 }
+.desglose li::before {
+  content: "";
+  flex: 0 0 auto;
+  width: 22px;
+  height: 22px;
+  background: url("../img/diana.svg") center / contain no-repeat;
+}
+.desglose li span:first-child { flex: 1; }
 
+/* Cierre: recorrido punteado hasta la diana. */
 .cierre { font-family: var(--fuente-titulos); font-size: 1.25rem; margin-top: 2rem; }
+.cierre::before {
+  content: "";
+  display: block;
+  height: 30px;
+  margin-bottom: 0.75rem;
+  background:
+    url("../img/diana.svg") right center / 30px 30px no-repeat,
+    repeating-linear-gradient(90deg, var(--enfasis) 0 6px, transparent 6px 13px) left center / calc(100% - 42px) 3px no-repeat;
+}
 
 /* ---------- Escritorio ---------- */
 @media (min-width: 720px) {
   body { font-size: 1.125rem; }
-  main { padding-top: 2rem; }
+  main { padding-top: 2.25rem; }
+  .cabecera { padding: 1rem 1.5rem 0.625rem; }
+  .logo { height: 36px; }
+  .cabecera .marca { max-width: none; font-size: 0.8125rem; }
+  .hero {
+    display: grid;
+    grid-template-columns: 1.15fr 1fr;
+    align-items: center;
+    gap: 1.5rem;
+    padding: 1.75rem 1.75rem;
+  }
+  .hero p { margin: 0; font-size: 1.1875rem; }
+  .hero .escena-svg { margin: 0; }
   .grupo.dos-columnas { grid-template-columns: 1fr 1fr; }
   .paleta { grid-template-columns: repeat(4, 1fr); }
   .retomar { grid-template-columns: 1fr 1fr; }
+  .navegacion .boton.principal { flex: 0 1 18rem; margin-left: auto; }
+  .tarjeta-arquetipo .nombre { font-size: 2.25rem; }
 }
 
-/* ---------- Impresión (descarga de la ficha) ---------- */
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; }
+}
+
+/* ---------- Impresión (descarga del resumen o de la ficha) ---------- */
 @media print {
-  .cabecera, .progreso, .navegacion, .no-imprimir, .boton { display: none !important; }
+  @page { margin: 14mm; }
+  .progreso, .navegacion, .no-imprimir, .boton, .escena { display: none !important; }
+  .cabecera { padding: 0 0 8pt; margin-bottom: 14pt; border-bottom: 2px solid var(--enfasis); }
+  .cabecera-fila { max-width: none; }
+  .logo { height: 34px; }
   body { font-size: 11pt; }
   main { max-width: none; padding: 0; }
   * {
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
   }
-  .resultado > section, .bloque-oscuro, .tarjeta-arquetipo, .muestra { break-inside: avoid; }
+  .resultado > section,
+  .bloque-oscuro,
+  .tarjeta-arquetipo,
+  .muestra,
+  .parrafo-arquetipo,
+  .explicacion-alerta,
+  .desglose li { break-inside: avoid; }
 }
