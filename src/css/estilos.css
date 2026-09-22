@@ -43,10 +43,10 @@
   --radio: 10px;
   --radio-grande: 18px;
   --ancho: 44rem;
-  /* Sombras de tarjeta: siempre negro con transparencia (ninguna tinta nueva), solo para dar
-     profundidad y que las tarjetas no se apoyen únicamente en el borde de 2 px. */
-  --sombra: 0 1px 3px rgba(0, 0, 0, 0.06), 0 6px 16px rgba(0, 0, 0, 0.07);
-  --sombra-boton: 0 4px 12px rgba(216, 133, 31, 0.32);
+  /* Sombras de tarjeta: siempre negro con transparencia (ninguna tinta nueva), muy suaves,
+     solo para separar apenas la tarjeta del fondo blanco, sin marcarla. */
+  --sombra: 0 1px 2px rgba(0, 0, 0, 0.03), 0 3px 10px rgba(0, 0, 0, 0.04);
+  --sombra-boton: 0 2px 8px rgba(216, 133, 31, 0.22);
   /* Kanit para titulares y texto; si no llega, una sans-serif del sistema. */
   --fuente-titulos: "Kanit", system-ui, -apple-system, "Segoe UI", sans-serif;
   --fuente-texto: var(--fuente-titulos);
@@ -79,11 +79,20 @@ h3 { font-size: 1.125rem; }
 p { margin: 0 0 0.75rem; }
 
 :focus-visible {
-  outline: 3px solid var(--texto);
+  outline: 2px solid var(--seccion-b);
   outline-offset: 2px;
-  box-shadow: 0 0 0 6px var(--enfasis) !important;
+  box-shadow: 0 0 0 4px rgba(216, 133, 31, 0.35);
 }
-[tabindex="-1"]:focus { outline: none; box-shadow: none; }
+/* interfaz.js pone el foco a cada título tras cambiar de pantalla (data-foco), solo para que
+   los lectores de pantalla anuncien el cambio: no es un control en el que alguien navegue con
+   tabulador, así que no debe verse ningún recuadro alrededor del texto. Antes esta regla no
+   ganaba nunca a la de arriba (que llevaba !important en el box-shadow) y el enunciado de cada
+   pregunta aparecía con un marco naranja grueso cada vez que se entraba en una pantalla nueva. */
+[tabindex="-1"]:focus,
+[tabindex="-1"]:focus-visible {
+  outline: none !important;
+  box-shadow: none !important;
+}
 
 .solo-lectores {
   position: absolute;
@@ -111,8 +120,7 @@ p { margin: 0 0 0.75rem; }
 /* ---------- Cabecera y progreso (la flecha en vuelo hacia la diana) ---------- */
 .cabecera {
   background: var(--fondo);
-  border-bottom: 3px solid var(--enfasis);
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
   padding: 0.75rem 1rem 0.5rem;
   position: relative;
   z-index: 2;
@@ -191,10 +199,15 @@ p { margin: 0 0 0.75rem; }
 main {
   max-width: var(--ancho);
   margin: 0 auto;
-  padding: 1.5rem 1rem 2.5rem;
+  padding: 1.75rem 1.25rem 3rem;
 }
 
 .pantalla > h2:focus { outline: none; }
+
+/* El enunciado de cada pregunta (y los títulos equivalentes de la misma pantalla: modo,
+   «Tus datos», retomar) va en peso normal-medio, no en negrita: la negrita se reserva para
+   los titulares de sección de verdad (bloques, resultado). */
+.pantalla > h2 { font-weight: 500; }
 
 /* Adorno de titulares: una flecha corta. */
 .pantalla > h2::before,
@@ -227,30 +240,30 @@ main {
   background: var(--seccion-b);
   color: #FFFFFF;
   border-radius: var(--radio-grande);
-  border-left: 6px solid var(--enfasis);
+  border-left: 2px solid var(--enfasis);
   box-shadow: var(--sombra);
-  padding: 1.125rem 1.25rem;
-  margin-bottom: 1.125rem;
+  padding: 1.375rem 1.5rem;
+  margin-bottom: 1.375rem;
 }
 .encabezado-bloque p:last-child { margin-bottom: 0; }
 
 /* Opciones de elección única: cada radio es una pequeña diana. */
-.grupo { display: grid; gap: 0.625rem; margin: 1rem 0; }
+.grupo { display: grid; gap: 0.75rem; margin: 1.25rem 0; }
 
 .opcion {
   display: flex;
   align-items: center;
   gap: 0.875rem;
   min-height: 52px;
-  padding: 0.625rem 0.875rem;
-  border: 2px solid var(--seccion-b);
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--seccion-b);
   border-radius: var(--radio);
   cursor: pointer;
   background: var(--fondo);
   box-shadow: var(--sombra);
   transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
 }
-.opcion:hover { border-color: var(--enfasis); transform: translateY(-1px); box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08), 0 10px 20px rgba(0, 0, 0, 0.08); }
+.opcion:hover { border-color: var(--enfasis); transform: translateY(-1px); box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05), 0 6px 14px rgba(0, 0, 0, 0.05); }
 .opcion input[type="radio"] {
   -webkit-appearance: none;
   appearance: none;
@@ -270,14 +283,14 @@ main {
 .opcion.seleccionada {
   background: var(--seccion-b);
   border-color: var(--seccion-b);
-  box-shadow: inset 6px 0 0 var(--enfasis);
+  box-shadow: inset 4px 0 0 var(--enfasis);
   color: #FFFFFF;
   font-weight: 600;
 }
 .opcion:has(input:focus-visible) {
-  outline: 3px solid var(--texto);
+  outline: 2px solid var(--seccion-b);
   outline-offset: 2px;
-  box-shadow: 0 0 0 6px var(--enfasis);
+  box-shadow: 0 0 0 4px rgba(216, 133, 31, 0.35);
 }
 .opcion:has(input:focus-visible) input { outline: none; box-shadow: none !important; }
 @supports not selector(:has(*)) {
@@ -286,7 +299,7 @@ main {
 
 /* Doble selección del bloque 3 */
 .opcion-mm {
-  border: 2px solid var(--seccion-b);
+  border: 1px solid var(--seccion-b);
   border-radius: var(--radio);
   padding: 0.875rem;
   background: var(--fondo);
@@ -301,7 +314,7 @@ main {
   gap: 0.375rem;
   min-height: 48px;
   padding: 0.5rem;
-  border: 2px solid var(--seccion-b);
+  border: 1px solid var(--seccion-b);
   border-radius: var(--radio);
   background: var(--fondo);
   color: var(--texto);
@@ -344,20 +357,20 @@ main {
   padding: 0.625rem 0.25rem;
   text-align: center;
 }
-.escala .opcion.seleccionada { box-shadow: inset 0 -6px 0 var(--enfasis); }
+.escala .opcion.seleccionada { box-shadow: inset 0 -4px 0 var(--enfasis); }
 
 /* Campos de texto */
 .campo { margin-bottom: 1.125rem; }
 .campo label, .etiqueta-campo {
   display: block;
-  font-weight: 700;
+  font-weight: 600;
   margin-bottom: 0.375rem;
 }
 input[type="text"], input[type="email"], select, textarea {
   width: 100%;
   min-height: 48px;
   padding: 0.625rem 0.75rem;
-  border: 2px solid var(--seccion-b);
+  border: 1px solid var(--seccion-b);
   border-radius: var(--radio);
   background: var(--fondo);
   color: var(--texto);
@@ -365,7 +378,7 @@ input[type="text"], input[type="email"], select, textarea {
   box-shadow: var(--sombra);
 }
 textarea { min-height: 8rem; resize: vertical; }
-[aria-invalid="true"] { border-color: var(--seccion-b); border-width: 4px; }
+[aria-invalid="true"] { border-color: var(--seccion-b); border-width: 2px; }
 .error-campo { color: var(--texto); font-weight: 700; margin: 0.375rem 0 0; }
 .campo-libre {
   margin-top: 1.5rem;
@@ -383,12 +396,12 @@ textarea { min-height: 8rem; resize: vertical; }
   padding: 0.625rem 0.75rem;
   background: var(--seccion-b);
   color: #FFFFFF;
-  border-left: 6px solid var(--enfasis);
+  border-left: 2px solid var(--enfasis);
   border-radius: 4px;
 }
 
 /* Botones */
-.navegacion { display: flex; gap: 0.75rem; margin-top: 1.5rem; }
+.navegacion { display: flex; gap: 0.75rem; margin-top: 1.75rem; }
 .boton {
   display: inline-flex;
   align-items: center;
@@ -396,7 +409,7 @@ textarea { min-height: 8rem; resize: vertical; }
   gap: 0.5rem;
   min-height: 52px;
   padding: 0.625rem 1.375rem;
-  border: 2px solid var(--seccion-b);
+  border: 1px solid var(--seccion-b);
   border-radius: var(--radio);
   font-family: var(--fuente-titulos);
   font-size: 1.0625rem;
@@ -413,7 +426,7 @@ textarea { min-height: 8rem; resize: vertical; }
   color: var(--texto);
   box-shadow: var(--sombra-boton);
 }
-.boton.principal:hover { transform: translateY(-2px); box-shadow: 0 8px 18px rgba(216, 133, 31, 0.4); }
+.boton.principal:hover { transform: translateY(-2px); box-shadow: 0 4px 14px rgba(216, 133, 31, 0.3); }
 .boton.secundario { box-shadow: var(--sombra); }
 .boton.secundario:hover { border-color: var(--enfasis); transform: translateY(-2px); }
 .boton:active { transform: translateY(0); }
@@ -453,10 +466,10 @@ textarea { min-height: 8rem; resize: vertical; }
 .tarjeta-arquetipo {
   position: relative;
   overflow: hidden;
-  border: 2px solid var(--seccion-b);
+  border: 1px solid var(--seccion-b);
   border-radius: var(--radio-grande);
   box-shadow: var(--sombra);
-  padding: 1.25rem;
+  padding: 1.5rem;
 }
 /* Anillos de diana al fondo de la tarjeta, con el color del texto para no romper el contraste. */
 .tarjeta-arquetipo::before {
@@ -502,13 +515,13 @@ textarea { min-height: 8rem; resize: vertical; }
   font-size: 1.375rem;
   line-height: 1.35;
   padding-left: 1rem;
-  border-left: 5px solid var(--enfasis);
+  border-left: 2px solid var(--enfasis);
 }
 
 .bloque-oscuro {
   color: #FFFFFF;
   border-radius: var(--radio-grande);
-  border-left: 6px solid var(--enfasis);
+  border-left: 2px solid var(--enfasis);
   box-shadow: var(--sombra);
   padding: 1.125rem 1.125rem 1.125rem 1.25rem;
 }
@@ -519,7 +532,7 @@ textarea { min-height: 8rem; resize: vertical; }
 .bloque-oscuro .separador { border-top: 1px solid #FFFFFF; margin: 0.75rem 0; opacity: 0.5; }
 
 .aviso-heroe {
-  border-left: 6px solid var(--enfasis);
+  border-left: 2px solid var(--enfasis);
   padding-left: 0.75rem;
   margin-top: 0.75rem;
 }
@@ -547,7 +560,7 @@ textarea { min-height: 8rem; resize: vertical; }
 
 .voz { display: flex; flex-wrap: wrap; gap: 0.5rem; padding: 0; margin: 0; list-style: none; }
 .voz li {
-  border: 2px solid var(--seccion-b);
+  border: 1px solid var(--seccion-b);
   border-radius: 999px;
   padding: 0.25rem 0.875rem;
   font-weight: 600;
@@ -555,7 +568,7 @@ textarea { min-height: 8rem; resize: vertical; }
 
 .paleta { display: grid; grid-template-columns: 1fr 1fr; gap: 0.625rem; }
 .muestra {
-  border: 2px solid var(--seccion-b);
+  border: 1px solid var(--seccion-b);
   border-radius: var(--radio);
   box-shadow: var(--sombra);
   padding: 0.75rem;
@@ -571,7 +584,7 @@ textarea { min-height: 8rem; resize: vertical; }
 .explicacion-alerta p {
   margin: 0;
   padding-left: 1rem;
-  border-left: 5px solid var(--seccion-b);
+  border-left: 2px solid var(--seccion-b);
   font-size: 1.125rem;
 }
 .arquetipos-alerta { display: grid; gap: 0.75rem; }
@@ -580,7 +593,7 @@ textarea { min-height: 8rem; resize: vertical; }
   align-items: flex-start;
   gap: 0.875rem;
   padding: 1rem;
-  border: 2px solid var(--seccion-b);
+  border: 1px solid var(--seccion-b);
   border-radius: var(--radio);
   box-shadow: var(--sombra);
 }
@@ -599,7 +612,7 @@ textarea { min-height: 8rem; resize: vertical; }
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  border: 2px solid var(--seccion-b);
+  border: 1px solid var(--seccion-b);
   border-radius: var(--radio);
   box-shadow: var(--sombra);
   padding: 0.625rem 0.875rem;
@@ -636,7 +649,7 @@ textarea { min-height: 8rem; resize: vertical; }
    cae el final del contenido. pointer-events: none de más, por si acaso. */
 .decoracion-arquera {
   display: block;
-  width: 64px;
+  width: 110px;
   height: auto;
   margin: 2rem 0 1rem auto;
   opacity: 0.9;
@@ -648,13 +661,13 @@ textarea { min-height: 8rem; resize: vertical; }
   user-select: none;
 }
 @media (min-width: 480px) {
-  .decoracion-arquera { width: 110px; margin-right: 1rem; }
+  .decoracion-arquera { width: 170px; margin-right: 1rem; }
 }
 @media (min-width: 720px) {
-  .decoracion-arquera { width: 170px; }
+  .decoracion-arquera { width: 240px; }
 }
 @media (min-width: 1100px) {
-  .decoracion-arquera { width: 230px; margin-right: 1.5rem; }
+  .decoracion-arquera { width: 320px; margin-right: 1.5rem; }
 }
 
 /* ---------- Escritorio ---------- */
@@ -688,7 +701,7 @@ textarea { min-height: 8rem; resize: vertical; }
 @media print {
   @page { margin: 14mm; }
   .progreso, .navegacion, .no-imprimir, .boton, .escena, .decoracion-arquera { display: none !important; }
-  .cabecera { padding: 0 0 8pt; margin-bottom: 14pt; border-bottom: 2px solid var(--enfasis); }
+  .cabecera { padding: 0 0 8pt; margin-bottom: 14pt; border-bottom: 1px solid var(--enfasis); }
   .cabecera-fila { max-width: none; }
   .logo { height: 34px; }
   body { font-size: 11pt; }

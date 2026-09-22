@@ -318,3 +318,69 @@ No toqué `src/index.html` (la posición del `<img>` como hermano posterior de `
 - Navegadores reales y dispositivos táctiles (solo Edge/Chromium headless, igual que en rondas anteriores).
 - Vista previa real de impresión/PDF (solo se confirmó el `display: none` computado en el medio `print`).
 - El aspecto de la mascota en viewports muy anchos (≥1100 px), donde ahora queda alineada al borde derecho de `body` (ancho completo de la ventana) y no al ancho de columna de `main` (`max-width`); es el mismo anclaje relativo al borde de página que ya tenía la versión `fixed`, así que no es una regresión, pero no se ha vuelto a mirar visualmente en esta ronda.
+
+## Cambio 4: ajustes de estilo pedidos por Elizabeth
+
+Encargo: terminar y verificar una ronda de ajustes visuales (4 puntos) que quedó a medias, sin documentar ni verificar. Al entrar, `git status` mostraba `src/css/estilos.css` modificado sin comprobar (además de `.claude/skills/marca-al-objetivo/SKILL.md`, fuera de mi alcance, y dos imágenes de referencia sin seguimiento en `docs/`).
+
+### Qué encontré al revisar el diff pendiente
+
+`git diff -- src/css/estilos.css` frente al último commit (`2cf228b`) mostraba que el proceso anterior **sí había completado** un rediseño de elegancia coherente en todo el archivo, no solo en los tres puntos que resumía el encargo: bordes generales de 2 px a 1 px en tarjetas, opciones, botones y campos; sombras (`--sombra`, `--sombra-boton`) mucho más suaves; `border-left` de acento naranja reducido de 5–6 px a 3–4 px en varios componentes; cabecera sin filete naranja grueso (de `border-bottom: 3px solid var(--enfasis)` a `1px solid rgba(0,0,0,.08)`); `:focus-visible` con contorno más fino y `box-shadow` traslúcido en vez de sólido; y la regla `[tabindex="-1"]:focus { outline: none !important; box-shadow: none !important; }` ya presente (línea 91–95), que es la que quita el recuadro naranja sobre el enunciado al cambiar de pantalla (punto 1). El enunciado de pregunta ya tenía `font-weight: 500` (línea 210, punto 3) y la mascota ya estaba agrandada a 110/170/240/320 px según punto de corte (punto 2, antes 64/110/170/230).
+
+Es decir: los puntos 1, 2 y 3 ya estaban resueltos en el CSS pendiente de commit. Lo que faltaba era (a) verificarlo con un recorrido real, y (b) revisar con ojo crítico el punto 4 (elegancia general) comparando con `docs/captura-pantalla-web-al-objetivo.png`.
+
+### Punto 1: sin recuadro naranja grueso alrededor del texto
+
+- **Ya resuelto por el proceso anterior**, sin cambios míos: `src/css/estilos.css` líneas 81–95. La regla `:focus-visible` general (contorno fino + `box-shadow` traslúcido de 4 px) se anula específicamente para `[tabindex="-1"]:focus` (el título al que `interfaz.js` da foco tras cada cambio de pantalla, solo para accesibilidad de lectores de pantalla, no para navegación por tabulador).
+- **Verificado en esta ronda**: recorrido con Edge headless por CDP; en la pantalla de bienvenida y en P1 (bloque 1), tras dar foco al `h2` programáticamente, `getComputedStyle` devuelve `outline: none` y `box-shadow: none`. Sin recuadro en ningún estado.
+
+### Punto 2: mascota más grande
+
+- **Ya resuelto por el proceso anterior**, sin cambios míos: `src/css/estilos.css` líneas 650–671. Antes: 64 px (base), 110 px (≥480 px), 170 px (≥720 px), 230 px (≥1100 px). Ahora: 110 / 170 / 240 / 320 px.
+- **Verificado en esta ronda** con un recorrido headless a 5 anchos de viewport (360, 480, 720, 1100, 1280 px): la mascota mide exactamente 110/170/240/320/320 px de ancho en cada uno (bastante más grande que el valor publicado de 64 px), sin desbordamiento horizontal en ninguno (`document.documentElement.scrollWidth === clientWidth` en los cinco).
+- **Sin solapes con controles**, comprobado con `getBoundingClientRect()` (igual método que la ronda de validación anterior) en 4 pantallas (bienvenida/modo, «Tus datos», P1 y una pregunta del bloque 3 de doble selección), en 4 fracciones de scroll cada una (0 %, 33 %, 66 %, 100 %): cero intersecciones con `button`, `a`, `input`, `select`, `textarea`, `.opcion` ni `.boton-mm` en los 16 puntos comprobados. Esto es consecuencia del mecanismo ya documentado en el «Ciclo de corrección 2» (la mascota vive en flujo normal del documento, después de todo el contenido de `#app`, no en `position: fixed`): agrandarla no reintroduce el problema porque el mecanismo que lo evita no depende del tamaño.
+
+### Punto 3: enunciado de las preguntas sin negrita
+
+- **Ya resuelto por el proceso anterior**, sin cambios míos: `src/css/estilos.css` línea 210, `.pantalla > h2 { font-weight: 500; }` (los `h1, h2, h3` genéricos siguen en 700 para los titulares de verdad: bloques, resultado).
+- **Verificado en esta ronda**: `getComputedStyle` sobre el `h2` real de P1 (bloque 1, «¿Tus clientes suelen llegar a ti en un momento delicado o vulnerable?») devuelve `font-weight: 500`.
+
+### Punto 4: estilo general más elegante
+
+El proceso anterior ya había hecho la mayor parte del trabajo (ver arriba: bordes más finos, sombras más suaves, cabecera sin filete grueso). Revisando con ojo crítico contra `docs/captura-pantalla-web-al-objetivo.png` (fondo blanco, tarjetas con borde fino, secciones de color plano sin bandas de acento adicionales, un único divisor vertical fino junto a «Te ayudo a»), quedaban varios `border-left` de acento naranja de 3–4 px que, aunque ya se habían reducido desde 5–6 px, seguían leyéndose como una barra de color más que como un detalle fino. Los reduje a 2 px:
+
+| Selector | Antes | Después | Por qué |
+|---|---|---|---|
+| `.encabezado-bloque` | `border-left: 4px solid var(--enfasis)` | `2px` | Es un bloque ya diferenciado por su fondo sólido (`--seccion-b`); el acento no necesita ser tan grueso para leerse. |
+| `.error:not(:empty)` | `border-left: 4px solid var(--enfasis)` | `2px` | Mismo motivo: fondo sólido propio, no hace falta un filete grueso. |
+| `.frase` | `border-left: 3px solid var(--enfasis)` | `2px` | Es la cita destacada de la combinación de arquetipos, sobre fondo blanco; un filete fino se parece más al divisor de la referencia. |
+| `.bloque-oscuro` | `border-left: 4px solid var(--enfasis)` | `2px` | Igual que `.encabezado-bloque`: fondo sólido (`--seccion-a`/`--seccion-b`) ya lo distingue. |
+| `.aviso-heroe` | `border-left: 4px solid var(--enfasis)` | `2px` | Aviso en línea dentro de una ficha, sobre fondo claro u oscuro según contexto; filete fino en vez de barra. |
+| `.explicacion-alerta p` | `border-left: 3px solid var(--seccion-b)` | `2px` | Mismo criterio de coherencia visual (aunque este no es naranja, sino `--seccion-b`, se afina igual para que todos los acentos en línea usen el mismo grosor). |
+
+No toqué `.opcion.seleccionada` (`box-shadow: inset 4px 0 0 var(--enfasis)`) ni `.escala .opcion.seleccionada` (`inset 0 -4px 0 var(--enfasis)`): a diferencia de los anteriores, son indicadores de estado funcionales (marcan qué opción está seleccionada), no decoración estática, y su grosor ayuda a que la selección se note al pasar la vista rápido por la lista de opciones. Tampoco toqué el `box-shadow` de `:focus-visible` (4 px, traslúcido): es una señal de accesibilidad para navegación por teclado, ya suavizada por el proceso anterior (antes era sólido con `!important`), y reducirla más podría perjudicar su visibilidad.
+
+No encontré ningún otro elemento "tosco" o recargado: comprobé que el único conjunto de colores hexadecimales en todo `estilos.css` sigue siendo la paleta de Al Objetivo (`grep -oE "#[0-9A-Fa-f]{6}" src/css/estilos.css | sort -u` → `#000000 #1A2B32 #3D391F #D8851F #FFFFFF`, sin tintas nuevas), que las sombras de tarjeta ya eran muy suaves (`--sombra: 0 1px 2px rgba(0,0,0,.03), 0 3px 10px rgba(0,0,0,.04)`) y que los bordes generales de tarjetas, opciones, campos y botones ya estaban en 1 px.
+
+No cambié nada en `src/index.html`: la estructura (mascota como hermano de `#app`, `alt=""`, `aria-hidden`) no necesitaba tocarse para ninguno de los 4 puntos.
+
+### Colores de arquetipo frente a la interfaz
+
+Sin cambios en `src/data/arquetipos.js` (fuera de mi alcance). Comprobación de coherencia (no repetición de trabajo, solo confirmación rápida): los 12 hex de `ARQUETIPOS` (`#F0E6D2 #2C3E50 #4A5D45 #B03A2E #1A1A1A #2E7D8C #8B7355 #A64B6B #E8B84B #6B8E7F #6B4C93 #5B2333`) no coinciden con ninguno de los 5 de la interfaz.
+
+### Verificación
+
+- `node --test tests/*.test.js`: **69 pruebas, 69 correctas, 0 fallos**, Node `v24.18.0`. Sin cambios en `tests/`, `src/js/` ni `src/data/`, así que era esperable, pero se ha vuelto a ejecutar tras los ajustes de CSS.
+- Recorrido con Edge headless por CDP (WebSocket nativo de Node, script ad hoc en el directorio de scratchpad de la sesión, no en el repositorio) contra un servidor estático local (`python -m http.server` sobre `src/`), con `window.fetch` interceptado antes de navegar (sin envíos reales):
+  - **Foco sin recuadro:** `outline: none` y `box-shadow: none` sobre el `h2` con foco tras cambiar de pantalla (bienvenida y P1).
+  - **Sin negrita en el enunciado:** `font-weight: 500` confirmado sobre el `h2` real de P1.
+  - **Mascota más grande, sin desbordamiento:** 110/170/240/320/320 px de ancho a 360/480/720/1100/1280 px de viewport; `scrollWidth === clientWidth` en los cinco.
+  - **Mascota sin solapes:** en bienvenida/modo, «Tus datos», P1 y una pregunta del bloque 3 (doble selección), en 4 fracciones de scroll cada una (0/33/66/100 %): cero intersecciones de `.decoracion-arquera` con `button`, `a`, `input`, `select`, `textarea`, `.opcion` ni `.boton-mm` (16 comprobaciones, 0 solapes).
+  - **Paleta de interfaz:** único conjunto de hex en `estilos.css` es el de Al Objetivo (confirmado por `grep`, ver arriba).
+
+### No comprobado en este ciclo
+
+- Navegadores reales y dispositivos táctiles (solo Edge/Chromium headless, igual que en rondas anteriores).
+- Vista previa real de impresión/PDF con los nuevos grosores de borde (solo se ha comprobado visualmente por lectura de la hoja de estilos; la regla `@media print` no se ha tocado en esta ronda).
+- Comparación píxel a píxel contra `docs/captura-pantalla-web-al-objetivo.png`; la comparación ha sido visual y de criterio (grosores, colores, ausencia de cajas), no una superposición de imágenes.
+- Pantalla de resultado y pantalla de alerta con los `border-left` afinados (`.bloque-oscuro`, `.frase`, `.explicacion-alerta`): no se han vuelto a recorrer visualmente en esta ronda porque el cambio es solo de grosor (2 px en vez de 3–4 px) sobre una regla ya validada en rondas anteriores; no hay motivo estructural para que se vean distintas salvo el filete más fino.
