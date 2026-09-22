@@ -19,18 +19,21 @@ Este informe sustituye al anterior (que correspondía al despliegue del commit `
 
 No he modificado ningún archivo de `src/` ni de `tests/`; solo hice commit de lo que ya estaba en el árbol de trabajo (el ajuste de estilo «Cambio 4», ya validado) más los informes de `handoff/` que documentan esa ronda.
 
-## Commit publicado
+## Commits publicados
 
 - **`e2da1b4`** en `main`: «Afina el estilo visual: quita el recuadro de foco, agranda la mascota, quita negrita del enunciado y reduce los border-left de acento a 2px».
-- Push normal (`2cf228b..e2da1b4`), sin forzar ni reescribir historial.
-- Contenido (3 archivos): `src/css/estilos.css`, `handoff/02-implementacion.md`, `handoff/03-validacion.md`.
-- **No incluido:** `.claude/skills/marca-al-objetivo/SKILL.md` (modificado, fuera de `src/`/`tests/`/`handoff/`) ni `docs/captura-pantalla-web-al-objetivo.png` ni `docs/mujer-con-arco-y-flecha.jpg` (nuevos en `docs/`, que en cualquier caso no publica el workflow, pues solo sube `src/`).
+  - Push normal (`2cf228b..e2da1b4`), sin forzar ni reescribir historial.
+  - Contenido (3 archivos): `src/css/estilos.css`, `handoff/02-implementacion.md`, `handoff/03-validacion.md`.
+- **`65b4fef`** en `main`: «Completa el informe de despliegue con los datos reales del workflow y la comprobación de la URL publicada» (este mismo informe, `handoff/04-despliegue.md`).
+  - Push normal (`e2da1b4..65b4fef`).
+  - No toca `src/` ni `tests/`, así que no cambia nada de lo publicado.
+- **No incluido en ningún commit:** `.claude/skills/marca-al-objetivo/SKILL.md` (modificado, fuera de `src/`/`tests/`/`handoff/`) ni `docs/captura-pantalla-web-al-objetivo.png` ni `docs/mujer-con-arco-y-flecha.jpg` (nuevos en `docs/`, que en cualquier caso no publica el workflow, pues solo sube `src/`).
 
 ## Workflow de GitHub Actions
 
 Seguido con la API pública de GitHub por `curl` (`gh` no está instalado en esta máquina).
 
-Ejecución nº 5 «Publicar en GitHub Pages», commit `e2da1b4`, evento `push`, conclusión **success** (12:50:41 a 12:51:18 UTC del 22/09/2026):
+**Ejecución nº 5**, «Publicar en GitHub Pages», commit `e2da1b4` (el que trae el CSS nuevo), evento `push`, conclusión **success** (12:50:41 a 12:51:18 UTC del 22/09/2026):
 https://github.com/elizacastillot/quiz-personalidad-marca/actions/runs/35729654384
 
 | Job | Resultado | Detalle |
@@ -38,6 +41,8 @@ https://github.com/elizacastillot/quiz-personalidad-marca/actions/runs/357296543
 | `pruebas` (`actions/setup-node@v4`, `node-version: 20`) | success (12:50:44–12:50:53) | Paso «Run node --test» en verde: confirma en CI, con Node 20, lo mismo que `npm test` mostró en local (69/69). |
 | `build` (`actions/upload-pages-artifact@v4`, `path: src`) | success (12:50:56–12:51:00) | Solo se sube `src/`. |
 | `deploy` (`actions/deploy-pages@v4`) | success (12:51:04–12:51:18) | Despliegue completado. |
+
+**Ejecución nº 6**, commit `65b4fef` (solo el informe de despliegue), conclusión **success** también: https://github.com/elizacastillot/quiz-personalidad-marca/actions/runs/35729906245. El workflow se disparó de nuevo porque no filtra por rutas (se ejecuta con cualquier push a `main`), pero el contenido de `src/` no cambió entre ambas ejecuciones, así que la web publicada sigue siendo la verificada abajo (la del commit `e2da1b4`).
 
 Versiones de acciones en uso (sin cambios respecto al despliegue anterior; no se ha tocado el workflow): `checkout@v4`, `setup-node@v4`, `configure-pages@v5`, `upload-pages-artifact@v4`, `deploy-pages@v4`. No se ha comprobado en esta ronda si existen versiones mayores más recientes; el despliegue anterior tampoco encontró motivo para actualizarlas y el workflow queda fuera de mi alcance de escritura.
 
