@@ -234,3 +234,87 @@ En una primera pasada de comprobación olvidé interceptar `fetch` y el recorrid
 - Comprobación de cobertura de glifos indirecta (por anchos); no se ha leído la tabla `cmap` del woff2.
 - Kanit tiene un interlineado propio alto; se mantiene `line-height` de la hoja sin ajustes y visualmente es legible.
 - El validador debe mirar: contraste y legibilidad del peso 400 en cuerpo a 17 px en un móvil real.
+
+## Cambio 3: rediseño de estilo Al Objetivo y mascota
+
+Encargo: terminar y verificar una ronda de rediseño visual que se había cortado a medias (otro proceso, sin cerrar). Al entrar, `git status` ya mostraba sin comprobar `src/index.html` y `src/css/estilos.css` modificados y `src/img/mujer-arco-flecha.jpg` (más `docs/captura-pantalla-web-al-objetivo.png`, `docs/mujer-con-arco-y-flecha.jpg` y `handoff/04-despliegue.md` sin seguimiento).
+
+### C3.1 Qué encontré al revisar
+
+El rediseño **no estaba a medias**: ya cumplía las cuatro cosas que pedía el encargo.
+
+1. **CSS coherente de principio a fin.** El diff pendiente (`git diff -- src/css/estilos.css`, 87 inserciones/23 borrados sobre el commit `335b4b5`) añadía `--radio-grande` (18px) y `--sombra`/`--sombra-boton` como variables, y los aplicaba de forma sistemática a *todas* las tarjetas, cabeceras de bloque, botones, campos y secciones de la interfaz (no a unas sí y otras no): revisé el archivo completo, no solo el diff, y no encontré ningún componente con el radio o la sombra antigua olvidada.
+2. **La mascota ya estaba integrada.** `src/index.html` añade `<img class="decoracion-arquera no-imprimir" src="img/mujer-arco-flecha.jpg" alt="" aria-hidden="true" width="3150" height="2100">` como hermano de `#app` (fuera del árbol que gestiona `interfaz.js`), y `estilos.css` la fija (`position: fixed; right/bottom`) con cuatro puntos de corte (64 px en móvil hasta 230 px en escritorio ≥1100 px), `mix-blend-mode: multiply` (el JPG es un trazo negro sobre blanco; el blend hace desaparecer el blanco y deja solo la línea, igual que el dibujo de la arquera de `docs/captura-pantalla-web-al-objetivo.png`), `pointer-events: none` y `opacity: 0.9`. Se retira por completo en `@media (max-height: 480px)` (apaisado de móvil) y en `@media print`. `<main>` reserva `padding-bottom: calc(var(--figura-alto) + 2.5rem)` (una variable por punto de corte) para que el final del contenido —los botones «Anterior»/«Siguiente»/«Ver resultado», «Descargar ficha», «Descargar resumen»— no quede debajo de la figura cuando la página termina justo ahí.
+3. **Sin archivos huérfanos en `src/img/`.** Solo hay assets usados: los SVG propios (`diana`, `flecha*`, `check`, `cruz`, `punta`, `favicon`), `logo-al-objetivo.svg` y `mujer-arco-flecha.jpg`. Las dos capturas/fotos de referencia (`captura-pantalla-web-al-objetivo.png`, `mujer-con-arco-y-flecha.jpg`) viven en `docs/`, no en `src/`, así que no se publican con la web; comprobé con `cmp` que `docs/mujer-con-arco-y-flecha.jpg` y `src/img/mujer-arco-flecha.jpg` son bit a bit idénticos (357 275 bytes): es el mismo patrón que ya usaron con el logo (original en `docs/`, copia de trabajo en `src/img/`).
+4. **Ninguna colisión de color.** Comparé a mano los 12 hex de `src/data/arquetipos.js` (`#F0E6D2 #2C3E50 #4A5D45 #B03A2E #1A1A1A #2E7D8C #8B7355 #A64B6B #E8B84B #6B8E7F #6B4C93 #5B2333`) contra la paleta de interfaz (`#FFFFFF #000000 #D8851F #3D391F #1A2B32`): ninguno coincide.
+
+**No he tocado ni `src/index.html` ni `src/css/estilos.css`**: no encontré nada que completar. Tampoco he tocado `src/js/puntuacion.js`, `src/js/envio.js`, `src/data/cuestionario.js` ni `src/data/arquetipos.js` (fuera de alcance) ni `docs/` ni `.claude/` (la modificación pendiente de `.claude/skills/marca-al-objitvo/SKILL.md` ya estaba así al entrar; la dejo tal cual, sin revisarla ni revertirla, porque no es mía ni está en mi alcance).
+
+### C3.2 Verificación que sí hice
+
+- **Pruebas:** `node --test tests/*.test.js` y `npm test` (`node --test`, script de `package.json`): **69 pruebas, 69 correctas, 0 fallos** en ambos casos, Node `v24.18.0`. (`node --test tests/` sigue sin funcionar en esta versión de Node, tal como ya avisaba este documento.)
+- **Recorrido visual automatizado** con Edge headless por CDP (WebSocket nativo de Node, sin dependencias) contra un servidor estático local (`python -m http.server` sobre `src/`), a 360 px de ancho:
+  - Modo, datos, P1 (sí/no), bloque 2 (P4, elección única) y bloque 3 (P8, doble botón «Más me describe» / «Menos me describe»): `scrollWidth === clientWidth` en las cinco (sin desbordamiento horizontal); la mascota se ve fija en la esquina inferior derecha, discreta (trazo fino, sin fondo blanco) y sin montarse sobre los botones «Anterior» / «Siguiente» en su posición de reposo.
+  - **Resultado normal:** inyecté el progreso completo del caso «Al Objetivo» (`tests/fixtures.js`) directamente en `localStorage` y seguí el flujo real de la interfaz (pantalla «retomar» → «Continuar donde lo dejaste» → enviar los pasos opcionales restantes) para llegar a la pantalla real generada por `interfaz.js`, no a una maqueta aparte. Resultado: Mago 62 % / Hombre común 38 %, tarjetas con sus colores de arquetipo (`#2E7D8C` y `#8B7355`, ninguno de la interfaz), sin desbordamiento a 360 px ni a 1280 px, mascota visible en ambas anchuras sin tapar «Descargar ficha».
+  - **Pantalla de alerta:** no había ninguna combinación de respuestas de prueba lista que disparase la alerta *y* respondiera las 35 preguntas obligatorias completas (`tests/fixtures.js` solo trae subconjuntos parciales pensados para probar `calcular()` de forma aislada). Construí un juego de respuestas completo y lo validé primero con `calcular()` en Node (fuera de cualquier archivo del repo, en un script temporal que borré después) antes de metérselo a la interfaz real, para no adivinar a ciegas: confirmé `alerta: true` con los discriminantes de El Amante, El Cuidador y El Gobernante empatados en 3 puntos. Con eso completo, mismo mecanismo de «retomar»: la pantalla de alerta real se ve bien, botón «Descargar resumen» y figura decorativa con `solapan: false` (comprobado con `getBoundingClientRect()` de los dos elementos), sin desbordamiento horizontal.
+  - **Impresión:** `Emulation.setEmulatedMedia({ media: 'print' })` y lectura de `getComputedStyle(...).display` sobre `.decoracion-arquera`: **`none`**, confirmado.
+  - **Sin envíos reales:** en todos los recorridos anteriores intercepté `window.fetch` con `Page.addScriptToEvaluateOnNewDocument` *antes* de navegar (se ejecuta antes que el módulo de la app), así que ninguna petición llegó a la URL real de Apps Script; solo se registró la llamada interceptada en memoria. Evito así repetir el incidente de la sección C2.3 (dos filas de prueba que llegaron a la hoja real).
+- Capturas guardadas en `%LOCALAPPDATA%\Temp\shots\` (no forman parte del repositorio): `cdp-01-modo.png` … `cdp-12-alerta-completa.png`.
+
+### C3.3 Decisiones y cosas a saber
+
+1. No hice ningún cambio de código porque no encontré nada incompleto ni inconsistente. Si el validador ve algo distinto, conviene que apunte el archivo y la línea exacta.
+2. La mascota, al estar en posición fija con `mix-blend-mode: multiply` y sin fondo propio, puede cruzarse visualmente con texto o con tarjetas de opción mientras se hace scroll a media pantalla (no solo al llegar al final): es un trazo fino y semitransparente, `pointer-events: none` así que nunca bloquea un clic, y el hueco reservado en `<main>` garantiza que no tape los botones cuando la página termina (que es el reposo natural tras responder). Lo dejo anotado por si Elizabeth prefiere un criterio más estricto (por ejemplo, ocultarla también mientras el usuario interactúa con un campo).
+3. No he movido ni borrado `docs/captura-pantalla-web-al-objetivo.png` ni `docs/mujer-con-arco-y-flecha.jpg`: están en `docs/`, fuera de mi alcance, y no se publican con la web (el `build` del workflow solo sube `src/`).
+4. Los scripts de comprobación (arranque de Edge headless por CDP) los escribí en el directorio de scratchpad de la sesión, no en el repositorio; no dejan rastro en `src/` ni en `tests/`.
+
+### C3.4 No comprobado
+
+- Navegadores reales (solo Edge/Chromium headless) y dispositivos táctiles reales.
+- Vista previa real de impresión / PDF con la mascota (solo se comprobó que su `display` computado es `none` en el medio `print`; no se generó un PDF).
+- El comportamiento de la mascota con el zoom de texto del navegador aumentado (accesibilidad) o con `prefers-reduced-motion`/alto contraste del sistema operativo.
+- Modo fundador con las tres condiciones activas en esta ronda concreta (ya se había comprobado en el Cambio 1, C1.1; no ha cambiado nada de esa lógica aquí).
+
+## Ciclo de corrección 2: mascota tapa controles
+
+Fallo tratado: el único de `handoff/03-validacion.md` (punto 22 de la tabla y sección 5): `.decoracion-arquera` se solapaba visualmente con controles interactivos en la pantalla de bienvenida/modo, en «Tus datos», en preguntas de elección única del bloque 2 (p. ej. P5) y en el bloque 3 al bajar el scroll (p. ej. P16–P18).
+
+### Por qué fallaba de raíz
+
+La regla anterior ponía la mascota en `position: fixed; right/bottom` y reservaba hueco con `main { padding-bottom: calc(var(--figura-alto) + 2.5rem) }`. Ese `padding-bottom` solo añade espacio en blanco *al final del documento*; no protege nada mientras tanto, porque un elemento `fixed` no está anclado a un punto del documento sino a la esquina del **viewport**, siempre en la misma posición en pantalla con independencia de cuánto se haya scrolleado. Por eso:
+- En pantallas cortas que caben enteras en el viewport (bienvenida, «Tus datos», P5), no hace falta scroll para que la esquina inferior derecha del viewport —donde vive la mascota— coincida con el sitio donde cae el último control (el botón «Siguiente» o la etiqueta de una opción), aunque el documento tenga de sobra el hueco reservado más abajo, fuera de vista.
+- En el bloque 3, al bajar el scroll para ver las últimas opciones, la mascota seguía clavada en la esquina del viewport y coincidía con cualquier botón que pasara por ahí a media pantalla, sitio que el `padding-bottom` (pensado solo para el final del documento) no cubre.
+
+Esto ya lo advertía la propia implementación (C3.3.2) como riesgo sin resolver.
+
+### Qué cambié
+
+En `src/css/estilos.css`:
+1. `.decoracion-arquera` deja de ser `position: fixed`. Pasa a `display: block` en el flujo normal del documento, con `margin: 2rem 0 1rem auto` (y ajustes de `margin-right` por punto de corte) para seguir apareciendo pegada al borde derecho, pero como parte del contenido, no superpuesta a él.
+2. Como el elemento `<img class="decoracion-arquera">` es, en `src/index.html`, un hermano de `#app` situado **después** de él en el DOM (no lo toqué; ya estaba así), y `#app` es donde `interfaz.js` pinta la cabecera, la barra de progreso y el contenido de cada pantalla (`montar()`/`pintar()` en `src/js/interfaz.js`, sin cambios), la mascota ahora se renderiza siempre **después de todo el contenido de la pantalla actual**, en flujo de bloque normal. Ningún elemento de `#app` tiene posicionamiento (`fixed`/`absolute`) ni márgenes negativos que puedan hacerlo aparecer por debajo de un elemento posterior en el DOM, así que la mascota no puede coincidir en el mismo espacio que un control: el modelo de caja en flujo normal apila los bloques uno tras otro, sin superposición, por construcción, no solo en los 4 casos documentados sino en cualquier pantalla y cualquier scroll.
+3. Elimino la variable `--figura-alto` (ya no hace falta calcular ni reservar un hueco a mano) y `main`'s padding vuelve a un valor fijo (`padding: 1.5rem 1rem 2.5rem`).
+4. Quito la regla `@media (max-height: 480px) { .decoracion-arquera { display: none; } }`: existía solo para evitar el solape en viewports muy bajos (apaisado en móvil), motivo que desaparece con el nuevo comportamiento en flujo; así la mascota deja de ocultarse permanentemente en ningún caso, tal como pide el criterio de esta ronda.
+5. `@media print` sigue incluyendo `.decoracion-arquera` en la lista de elementos ocultos (sin cambios en esa línea): sigue sin aparecer al imprimir.
+
+No toqué `src/index.html` (la posición del `<img>` como hermano posterior de `#app` ya era la correcta para este enfoque) ni ningún archivo de `src/js/`, `src/data/` ni `tests/`.
+
+### Por qué resuelve los 4 casos
+
+1. **Bienvenida/modo, sin scroll:** la mascota ahora se pinta después de todo el contenido de `#app` de esa pantalla (incluida la etiqueta del segundo radio), en flujo de bloque; no puede superponerse a algo que va *antes* que ella en el documento.
+2. **«Tus datos», sin scroll:** igual razonamiento; el botón «Siguiente» es el último control de `#app` en esa pantalla y la mascota va después, nunca puede solaparlo.
+3. **P5 (bloque 2, elección única), sin scroll:** mismo caso.
+4. **Bloque 3, con scroll a media pantalla (P16–P18):** al no estar fijada al viewport, la mascota ya no «viaja» con el scroll manteniéndose en la esquina; se queda en su sitio del documento, después del último botón «Menos me describe» de la pantalla, así que ningún punto de scroll intermedio puede hacerla coincidir con un botón que está más arriba en el flujo.
+
+### Verificación
+
+- `node --test tests/*.test.js`: **69 pruebas, 69 correctas, 0 fallos** (sin cambios en `tests/`, `src/js/` ni `src/data/`).
+- Recorrido con Edge headless por CDP (script ad hoc en el directorio de scratchpad de la sesión, no en el repositorio) a 360×740, con `fetch` interceptado (sin envíos reales): en cada uno de los 4 casos documentados por la validación, se recorrió el scroll vertical en pasos de 1/3 de la altura de viewport (incluida la posición de reposo `scrollY = 0`) comprobando con `getBoundingClientRect()` que el rectángulo de `.decoracion-arquera` no intersecta con ningún `button`, `a`, `input`, `select`, `textarea` ni `label.opcion` visible. Resultado: **sin solapes en ninguno de los 4 casos ni en ningún punto de scroll intermedio**.
+- Sin desbordamiento horizontal a 360 px (`scrollWidth === clientWidth === 360`) en la última pantalla recorrida (bloque 3).
+- `@media print`: `getComputedStyle('.decoracion-arquera').display` sigue devolviendo `none`.
+- La mascota se sigue viendo (no se ha ocultado permanentemente en ningún punto de corte); ahora aparece al final de cada pantalla en vez de fija en la esquina, lo cual es un cambio de comportamiento visible: ya no acompaña la vista mientras se hace scroll, sino que hay que llegar al final de cada pantalla para verla. Es una decisión de las permitidas por el encargo («tamaño, posición, capa o comportamiento con el scroll»); si Elizabeth prefiere que la mascota sea visible sin llegar al final (p. ej. como marca de agua fija pero solo en zonas garantizadas sin controles, o con un tamaño mucho menor), es un ajuste de criterio pendiente, no un fallo de esta corrección.
+
+### No comprobado en este ciclo
+
+- Navegadores reales y dispositivos táctiles (solo Edge/Chromium headless, igual que en rondas anteriores).
+- Vista previa real de impresión/PDF (solo se confirmó el `display: none` computado en el medio `print`).
+- El aspecto de la mascota en viewports muy anchos (≥1100 px), donde ahora queda alineada al borde derecho de `body` (ancho completo de la ventana) y no al ancho de columna de `main` (`max-width`); es el mismo anclaje relativo al borde de página que ya tenía la versión `fixed`, así que no es una regresión, pero no se ha vuelto a mirar visualmente en esta ronda.

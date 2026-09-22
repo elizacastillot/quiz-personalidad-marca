@@ -40,8 +40,13 @@
   --enfasis: #D8851F;
   --seccion-a: #3D391F;
   --seccion-b: #1A2B32;
-  --radio: 6px;
+  --radio: 10px;
+  --radio-grande: 18px;
   --ancho: 44rem;
+  /* Sombras de tarjeta: siempre negro con transparencia (ninguna tinta nueva), solo para dar
+     profundidad y que las tarjetas no se apoyen únicamente en el borde de 2 px. */
+  --sombra: 0 1px 3px rgba(0, 0, 0, 0.06), 0 6px 16px rgba(0, 0, 0, 0.07);
+  --sombra-boton: 0 4px 12px rgba(216, 133, 31, 0.32);
   /* Kanit para titulares y texto; si no llega, una sans-serif del sistema. */
   --fuente-titulos: "Kanit", system-ui, -apple-system, "Segoe UI", sans-serif;
   --fuente-texto: var(--fuente-titulos);
@@ -63,13 +68,13 @@ body {
 
 h1, h2, h3 {
   font-family: var(--fuente-titulos);
-  font-weight: 600;
-  line-height: 1.25;
-  letter-spacing: -0.005em;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
   margin: 0 0 0.75rem;
 }
 h1 { font-size: 1.5rem; }
-h2 { font-size: 1.5rem; }
+h2 { font-size: 1.625rem; }
 h3 { font-size: 1.125rem; }
 p { margin: 0 0 0.75rem; }
 
@@ -107,7 +112,10 @@ p { margin: 0 0 0.75rem; }
 .cabecera {
   background: var(--fondo);
   border-bottom: 3px solid var(--enfasis);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
   padding: 0.75rem 1rem 0.5rem;
+  position: relative;
+  z-index: 2;
 }
 .cabecera-fila {
   display: flex;
@@ -183,7 +191,7 @@ p { margin: 0 0 0.75rem; }
 main {
   max-width: var(--ancho);
   margin: 0 auto;
-  padding: 1.5rem 1rem 3.5rem;
+  padding: 1.5rem 1rem 2.5rem;
 }
 
 .pantalla > h2:focus { outline: none; }
@@ -205,9 +213,10 @@ main {
 .hero {
   background: var(--seccion-b);
   color: #FFFFFF;
-  border-radius: var(--radio);
-  padding: 1.25rem 1.25rem 0.75rem;
-  margin-bottom: 1.75rem;
+  border-radius: var(--radio-grande);
+  box-shadow: var(--sombra);
+  padding: 1.5rem 1.5rem 1rem;
+  margin-bottom: 2rem;
   overflow: hidden;
 }
 .hero p { font-size: 1.125rem; line-height: 1.5; margin: 0 0 0.75rem; }
@@ -217,10 +226,11 @@ main {
 .encabezado-bloque {
   background: var(--seccion-b);
   color: #FFFFFF;
-  border-radius: var(--radio);
+  border-radius: var(--radio-grande);
   border-left: 6px solid var(--enfasis);
-  padding: 1rem 1.125rem;
-  margin-bottom: 1rem;
+  box-shadow: var(--sombra);
+  padding: 1.125rem 1.25rem;
+  margin-bottom: 1.125rem;
 }
 .encabezado-bloque p:last-child { margin-bottom: 0; }
 
@@ -237,9 +247,10 @@ main {
   border-radius: var(--radio);
   cursor: pointer;
   background: var(--fondo);
-  transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+  box-shadow: var(--sombra);
+  transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
 }
-.opcion:hover { border-color: var(--enfasis); }
+.opcion:hover { border-color: var(--enfasis); transform: translateY(-1px); box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08), 0 10px 20px rgba(0, 0, 0, 0.08); }
 .opcion input[type="radio"] {
   -webkit-appearance: none;
   appearance: none;
@@ -279,6 +290,7 @@ main {
   border-radius: var(--radio);
   padding: 0.875rem;
   background: var(--fondo);
+  box-shadow: var(--sombra);
 }
 .opcion-mm p { margin: 0 0 0.75rem; }
 .botones-mm { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; }
@@ -350,6 +362,7 @@ input[type="text"], input[type="email"], select, textarea {
   background: var(--fondo);
   color: var(--texto);
   font: inherit;
+  box-shadow: var(--sombra);
 }
 textarea { min-height: 8rem; resize: vertical; }
 [aria-invalid="true"] { border-color: var(--seccion-b); border-width: 4px; }
@@ -382,25 +395,28 @@ textarea { min-height: 8rem; resize: vertical; }
   justify-content: center;
   gap: 0.5rem;
   min-height: 52px;
-  padding: 0.625rem 1.25rem;
+  padding: 0.625rem 1.375rem;
   border: 2px solid var(--seccion-b);
   border-radius: var(--radio);
   font-family: var(--fuente-titulos);
   font-size: 1.0625rem;
-  font-weight: 500;
+  font-weight: 600;
   cursor: pointer;
   background: var(--fondo);
   color: var(--texto);
+  transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease, background-color 0.15s ease;
 }
 .boton.principal {
   flex: 1;
   background: var(--enfasis);
   border-color: var(--enfasis);
   color: var(--texto);
-  box-shadow: 0 3px 0 var(--seccion-b);
+  box-shadow: var(--sombra-boton);
 }
-.boton.principal:hover { box-shadow: 0 1px 0 var(--seccion-b); transform: translateY(2px); }
-.boton.secundario:hover { border-color: var(--enfasis); }
+.boton.principal:hover { transform: translateY(-2px); box-shadow: 0 8px 18px rgba(216, 133, 31, 0.4); }
+.boton.secundario { box-shadow: var(--sombra); }
+.boton.secundario:hover { border-color: var(--enfasis); transform: translateY(-2px); }
+.boton:active { transform: translateY(0); }
 .boton[hidden] { display: none; }
 .icono-derecha::after { --icono: url("../img/flecha-derecha.svg"); width: 22px; height: 22px; }
 .icono-izquierda::before { --icono: url("../img/flecha-izquierda.svg"); width: 22px; height: 22px; }
@@ -428,7 +444,8 @@ textarea { min-height: 8rem; resize: vertical; }
 
 .escena {
   background: var(--seccion-b);
-  border-radius: var(--radio);
+  border-radius: var(--radio-grande);
+  box-shadow: var(--sombra);
   padding: 0.75rem;
 }
 .escena .escena-svg { max-width: 26rem; margin: 0 auto; }
@@ -437,7 +454,8 @@ textarea { min-height: 8rem; resize: vertical; }
   position: relative;
   overflow: hidden;
   border: 2px solid var(--seccion-b);
-  border-radius: var(--radio);
+  border-radius: var(--radio-grande);
+  box-shadow: var(--sombra);
   padding: 1.25rem;
 }
 /* Anillos de diana al fondo de la tarjeta, con el color del texto para no romper el contraste. */
@@ -480,6 +498,7 @@ textarea { min-height: 8rem; resize: vertical; }
 
 .frase {
   font-family: var(--fuente-titulos);
+  font-weight: 500;
   font-size: 1.375rem;
   line-height: 1.35;
   padding-left: 1rem;
@@ -488,8 +507,9 @@ textarea { min-height: 8rem; resize: vertical; }
 
 .bloque-oscuro {
   color: #FFFFFF;
-  border-radius: var(--radio);
+  border-radius: var(--radio-grande);
   border-left: 6px solid var(--enfasis);
+  box-shadow: var(--sombra);
   padding: 1.125rem 1.125rem 1.125rem 1.25rem;
 }
 .bloque-oscuro.a { background: var(--seccion-a); }
@@ -537,6 +557,7 @@ textarea { min-height: 8rem; resize: vertical; }
 .muestra {
   border: 2px solid var(--seccion-b);
   border-radius: var(--radio);
+  box-shadow: var(--sombra);
   padding: 0.75rem;
   min-height: 5rem;
   display: flex;
@@ -561,6 +582,7 @@ textarea { min-height: 8rem; resize: vertical; }
   padding: 1rem;
   border: 2px solid var(--seccion-b);
   border-radius: var(--radio);
+  box-shadow: var(--sombra);
 }
 .parrafo-arquetipo::before {
   content: "";
@@ -579,6 +601,7 @@ textarea { min-height: 8rem; resize: vertical; }
   gap: 0.75rem;
   border: 2px solid var(--seccion-b);
   border-radius: var(--radio);
+  box-shadow: var(--sombra);
   padding: 0.625rem 0.875rem;
   font-weight: 600;
 }
@@ -601,6 +624,37 @@ textarea { min-height: 8rem; resize: vertical; }
   background:
     url("../img/diana.svg") right center / 30px 30px no-repeat,
     repeating-linear-gradient(90deg, var(--enfasis) 0 6px, transparent 6px 13px) left center / calc(100% - 42px) 3px no-repeat;
+}
+
+/* ---------- Decoración: la arquera, al final de cada pantalla ---------- */
+/* Puramente decorativa (alt="" y aria-hidden en el HTML). Va en el flujo normal del
+   documento, después de #app (que es donde interfaz.js pinta cabecera, progreso y el
+   contenido de cada pantalla): así queda siempre por debajo del último control de la
+   pantalla (nunca superpuesta, porque el flujo normal no permite que dos elementos
+   ocupen el mismo espacio) y se ve al llegar al final de cada pantalla al hacer scroll,
+   sin depender de reservar un hueco de una altura calculada a mano ni de asumir dónde
+   cae el final del contenido. pointer-events: none de más, por si acaso. */
+.decoracion-arquera {
+  display: block;
+  width: 64px;
+  height: auto;
+  margin: 2rem 0 1rem auto;
+  opacity: 0.9;
+  /* El dibujo es un trazo negro sobre fondo blanco; "multiply" hace desaparecer el blanco
+     (se funde con lo que haya debajo, claro u oscuro) y deja solo el trazo, como un adorno
+     de línea y no como una foto con marco rectangular encima del contenido. */
+  mix-blend-mode: multiply;
+  pointer-events: none;
+  user-select: none;
+}
+@media (min-width: 480px) {
+  .decoracion-arquera { width: 110px; margin-right: 1rem; }
+}
+@media (min-width: 720px) {
+  .decoracion-arquera { width: 170px; }
+}
+@media (min-width: 1100px) {
+  .decoracion-arquera { width: 230px; margin-right: 1.5rem; }
 }
 
 /* ---------- Escritorio ---------- */
@@ -633,7 +687,7 @@ textarea { min-height: 8rem; resize: vertical; }
 /* ---------- Impresión (descarga del resumen o de la ficha) ---------- */
 @media print {
   @page { margin: 14mm; }
-  .progreso, .navegacion, .no-imprimir, .boton, .escena { display: none !important; }
+  .progreso, .navegacion, .no-imprimir, .boton, .escena, .decoracion-arquera { display: none !important; }
   .cabecera { padding: 0 0 8pt; margin-bottom: 14pt; border-bottom: 2px solid var(--enfasis); }
   .cabecera-fila { max-width: none; }
   .logo { height: 34px; }
